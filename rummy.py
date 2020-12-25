@@ -4,8 +4,8 @@ Details here
 
 import pygame
 import random
-import itertools
-from card import Card
+from rummy_fxns import start_new_hand
+
 # import numpy as np
 pygame.init()
 
@@ -20,21 +20,42 @@ card_size = [50,100]
 card_colour = 0,0,0
 card_locations = [(50,50,card_size[0],card_size[1]),(150,50,card_size[0],card_size[1]),(250,50,card_size[0],card_size[1])]
 
-# Generate a shuffled (randomized) deck of 52 unique cards
-def shuffle_deck():
-	deck = []
-	suits = ["Hearts","Diamonds","Clubs","Spades"]
-	values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
-	all_cards =  list(itertools.product(suits,values)) #generate all possible card combinations
-	random.shuffle(all_cards) #randomize the card combinations
+# Initialize a new hand of Rummy 500
+deck,discard_line,player1_hand,player2_hand = start_new_hand()
+
+# Set the turn order
+player1_turn = True
+player2_turn = False
+
+# Play the hand. The hand ends when one player no longer has any cards in hand.
+while (len(player1_hand) != 0) or (len(player2_hand) != 0):
+	discard_prob = random.random()
 	
-	# Generate the randomized deck of cards
-	for i in range(len(all_cards)):
-		new_card = Card(all_cards[i][0],all_cards[i][1])
+	if player1_turn:
+		if discard_prob <= 0.5:
+			discard_line.append(player1_hand.pop())
+	elif player2_turn:
+		if discard_prob <= 0.5:
+			discard_line.append(player2_hand.pop())
+	else:
+		print("Error: nobody's turn.")
 
-		deck.append(new_card)
+print(len(player1_hand))
+print(len(player2_hand))
+# CURRENT ERROR: POP FROM EMPTY LIST (UNSOLVED ISSUE)
 
-	return deck #return the randomized deck of cards
+
+
+
+# print(deck)
+# print(discard_line)
+# print(player1_hand)
+# print(player2_hand)
+# print(len(deck))
+
+
+
+
 
 run = False #skip the window creation while debugging
 while run:
