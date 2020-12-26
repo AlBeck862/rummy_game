@@ -4,9 +4,10 @@ Details here
 
 import pygame
 import random
-from rummy_fxns import start_new_hand
-
+from rummy_fxns import *
 # import numpy as np
+
+# Initialize PyGame
 pygame.init()
 
 # Window parameters
@@ -28,30 +29,53 @@ player1_turn = True
 player2_turn = False
 
 # Play the hand. The hand ends when one player no longer has any cards in hand.
-while (len(player1_hand) != 0) or (len(player2_hand) != 0):
-	discard_prob = random.random()
+while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 	
+	# First player's turn
 	if player1_turn:
-		if discard_prob <= 0.5:
-			discard_line.append(player1_hand.pop())
+		player1_hand.append(deck.pop(0)) #pick a card from deck
+		
+		# Display the player's current hand.
+		print("This is your hand:")
+		print(player1_hand)
+
+		# Check for and declare triplets in the player's hand.
+		triplets = has_triplet(player1_hand)
+		for key in triplets:
+			if triplets[key]:
+				print("You have a triplet of " + str(key).upper() + "!")
+		
+
+		break
+		quartets = has_quartet(player1_hand)
+		for key in quartets:
+			pass
+		
+		straights = has_straight(player1_hand)
+		for key in straights:
+			pass
+		
+		#list what player has in hand (all cards + triplets, straights, etc.)
+		#"do you want to discard [available combos] to the tabletop?"
+		#which card do you want to discard to the discard line?
+		#discard that card to the discard line
+
+		# Switch to the other player's turn
+		player1_turn = False
+		player2_turn = True
+	
+	# Second player's turn
 	elif player2_turn:
-		if discard_prob <= 0.5:
-			discard_line.append(player2_hand.pop())
+		pass
+		
+		# Switch to the other player's turn
+		player1_turn = True
+		player2_turn = False
+	
+	# Failsafe
 	else:
 		print("Error: nobody's turn.")
 
-print(len(player1_hand))
-print(len(player2_hand))
-# CURRENT ERROR: POP FROM EMPTY LIST (UNSOLVED ISSUE)
-
-
-
-
-# print(deck)
-# print(discard_line)
-# print(player1_hand)
-# print(player2_hand)
-# print(len(deck))
 
 
 
@@ -69,5 +93,5 @@ while run:
 
 	pygame.display.update()
 
-
+# Quit PyGame
 pygame.quit()
