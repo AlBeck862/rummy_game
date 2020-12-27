@@ -21,6 +21,8 @@ card_size = [50,100]
 card_colour = 0,0,0
 card_locations = [(50,50,card_size[0],card_size[1]),(150,50,card_size[0],card_size[1]),(250,50,card_size[0],card_size[1])]
 
+### PUT ALL OF THIS INTO ANOTHER LOOP THAT ENDS WHEN A SCORE OF 500 IS REACHED
+
 # Initialize a new hand of Rummy 500
 deck,discard_line,player1_hand,player2_hand = start_new_hand()
 
@@ -43,18 +45,20 @@ while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 		triplets = has_triplet(player1_hand)
 		for key in triplets:
 			if triplets[key]:
-				print("You have a triplet of " + str(key).upper() + "!")
+				print("You have a triplet of " + str(key).upper() + "'s!")
 		
-
-		break
+		# Check for and declare quartets in the player's hand.		
 		quartets = has_quartet(player1_hand)
 		for key in quartets:
-			pass
-		
+			if quartets[key]:
+				print("You have a quartet of " + str(key).upper() + "'s!")
+				
+
 		straights = has_straight(player1_hand)
+		break
 		for key in straights:
 			pass
-		
+
 		#list what player has in hand (all cards + triplets, straights, etc.)
 		#"do you want to discard [available combos] to the tabletop?"
 		#which card do you want to discard to the discard line?
@@ -76,9 +80,7 @@ while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 	else:
 		print("Error: nobody's turn.")
 
-
-
-
+### END OF SCORE LOOP
 
 
 run = False #skip the window creation while debugging
