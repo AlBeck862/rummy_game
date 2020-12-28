@@ -94,20 +94,14 @@ def sort_for_straights(suit_list):
 		numerical_list[num_value-1] = True
 		numerical_list[0] = numerical_list[13] #force the ace count to be the same in both ace locations
 
-	print(numerical_list)
+	return numerical_list
 
-	# Place the cards in the established order
-	### DO THIS HERE ###
-
-	# return the ordered list
-
-	#####
-	#Checklist:
-	#convert the card values to numerical values for sorting (DONE)
-	#put those values in order (DONE)
-	#slot the actual cards into that same order (if true...)
-	#return the ordered card list
-	#####
+def straight_length(order_list,i):
+	"""Recursive function to get the length of a straight."""
+	if order_list[i]:
+		return straight_length(order_list,i+1)
+	else:
+		return i
 
 def has_straight(player_hand):
 	"""Check if the player has one or many straights in their hand."""
@@ -127,14 +121,35 @@ def has_straight(player_hand):
 		if card.is_suit("spades"):
 			all_spades.append(card)
 
-	# Sort the suited lists
-	sort_for_straights(all_hearts)
-	# sort_for_straights(all_diamonds)	
-	# sort_for_straights(all_clubs)
-	# sort_for_straights(all_spades)
+	# Get the order of cards for each suit
+	hearts = sort_for_straights(all_hearts)
+	hearts.append(False) #append False to prevent a list-index error in the recursive function below
 
-	# For testing, delete later
-	print(all_hearts)
-	print(all_diamonds)
-	print(all_clubs)
-	print(all_spades)
+	diamonds = sort_for_straights(all_diamonds)
+	diamonds.append(False) #append False to prevent a list-index error in the recursive function below
+
+	clubs = sort_for_straights(all_clubs)
+	clubs.append(False) #append False to prevent a list-index error in the recursive function below
+
+	spades = sort_for_straights(all_spades)
+	spades.append(False) #append False to prevent a list-index error in the recursive function below
+
+	all_suits = [hearts,diamonds,clubs,spades]
+
+	# Create a two-dimensional list, 14 spaces per suit (in order: hearts, diamonds, clubs, spades)
+	lengths = [[0] * 14 for x in range(4)]
+	
+	# Get the straight lengths in a single multi-dimensional list
+	suit_num = 0
+	for suit in all_suits:
+		for i in range(len(suit)-1):
+			# Recursively return the length of the straight starting at that position, ace-low through ace-high
+			lengths[suit_num][i] = straight_length(suit,i) - i
+		suit_num += 1
+
+	print(lengths)
+
+	#TO_DO NEXT:
+	#the straights will always be separated by at least one zero
+	#use this fact to isolate straights
+	#straights must be at least three cards long
