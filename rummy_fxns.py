@@ -94,14 +94,8 @@ def sort_for_straights(suit_list):
 		numerical_list[num_value-1] = True
 		numerical_list[0] = numerical_list[13] #force the ace count to be the same in both ace locations
 
+	# Return a boolean list representing card presence in the given suit, ordered from ace-low to ace-high
 	return numerical_list
-
-def straight_length(order_list,i):
-	"""Recursive function to get the length of a straight."""
-	if order_list[i]:
-		return straight_length(order_list,i+1)
-	else:
-		return i
 
 def has_straight(player_hand):
 	"""Check if the player has one or many straights in their hand."""
@@ -123,33 +117,42 @@ def has_straight(player_hand):
 
 	# Get the order of cards for each suit
 	hearts = sort_for_straights(all_hearts)
-	hearts.append(False) #append False to prevent a list-index error in the recursive function below
+	hearts.append(False) #append False to prevent a list-index error below
 
 	diamonds = sort_for_straights(all_diamonds)
-	diamonds.append(False) #append False to prevent a list-index error in the recursive function below
+	diamonds.append(False) #append False to prevent a list-index error below
 
 	clubs = sort_for_straights(all_clubs)
-	clubs.append(False) #append False to prevent a list-index error in the recursive function below
+	clubs.append(False) #append False to prevent a list-index error below
 
 	spades = sort_for_straights(all_spades)
-	spades.append(False) #append False to prevent a list-index error in the recursive function below
+	spades.append(False) #append False to prevent a list-index error below
 
+	# Place all suit lists into a single multi-dimensional list
 	all_suits = [hearts,diamonds,clubs,spades]
 
-	# Create a two-dimensional list, 14 spaces per suit (in order: hearts, diamonds, clubs, spades)
-	lengths = [[0] * 14 for x in range(4)]
-	
-	# Get the straight lengths in a single multi-dimensional list
-	suit_num = 0
+	# Package straight cards and lengths together
+	straights = [False] * 20 #this is more than enough slots to cover for the number of possible straights in a hand
+	straight_num = 0
+	suit_count = 0
 	for suit in all_suits:
-		for i in range(len(suit)-1):
-			# Recursively return the length of the straight starting at that position, ace-low through ace-high
-			lengths[suit_num][i] = straight_length(suit,i) - i
-		suit_num += 1
+		suit_count += 1
+		for i in range(len(suit)):
+			# Edge case for the first index (cannot check the previous index)
+			if i == 0:
+				if suit[0]:
+					start_index = 0
+			# Detect the start of a potential straight
+			elif suit[i] and not suit[i-1]:
+				start_index = i
+			# Detect the end of a potential straight
+			elif suit[i] and not suit[i+1]:
+				end_index = i
+				if (end_index - start_index) >= 2:
+					straights[straight_num] = (suit_count,start_index,end_index)
+					straight_num += 1
+			else:
+				pass
 
-	print(lengths)
-
-	#TO_DO NEXT:
-	#the straights will always be separated by at least one zero
-	#use this fact to isolate straights
-	#straights must be at least three cards long
+	# Return the suit and the indeces of the cards bounding each straight
+	return straights

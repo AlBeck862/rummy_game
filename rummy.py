@@ -47,19 +47,25 @@ while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 			if triplets[key]:
 				print("You have a triplet of " + str(key).upper() + "'s!")
 		
-		# Check for and declare quartets in the player's hand.		
+		# Check for and declare quartets in the player's hand.
 		quartets = has_quartet(player1_hand)
 		for key in quartets:
 			if quartets[key]:
 				print("You have a quartet of " + str(key).upper() + "'s!")
 				
+		# Check for and declare straights in the player's hand.
+		straights = has_straight(player1_hand) #fetch straight data
+		suit_types = ["Hearts","Diamonds","Clubs","Spades"]
+		card_options = ["Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King","Ace"]
+		for straight in straights:
+			if straight:
+				suit_type = suit_types[straight[0]-1]
+				first_card = card_options[straight[1]]
+				last_card = card_options[straight[2]]
+				print("You have a straight from the " + first_card + " to the " + last_card + " of " + suit_type + "!")
 
-		straights = has_straight(player1_hand)
 		break
-		for key in straights:
-			pass
-
-		#list what player has in hand (all cards + triplets, straights, etc.)
+		#list what player has in hand (all cards + triplets, straights, etc.) ***(DONE)***
 		#"do you want to discard [available combos] to the tabletop?"
 		#which card do you want to discard to the discard line?
 		#discard that card to the discard line
