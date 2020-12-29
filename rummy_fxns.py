@@ -1,26 +1,11 @@
 import random
 import itertools
 from card import Card
-
-def shuffle_deck():
-	"""Generate a shuffled (randomized) deck of 52 unique cards."""
-	deck = []
-	suits = ["Hearts","Diamonds","Clubs","Spades"]
-	values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
-	all_cards =  list(itertools.product(suits,values)) #generate all possible card combinations
-	random.shuffle(all_cards) #randomize the card combinations
-	
-	# Generate the randomized deck of cards
-	for i in range(len(all_cards)):
-		new_card = Card(all_cards[i][0],all_cards[i][1])
-
-		deck.append(new_card)
-
-	return deck #return the randomized deck of cards
+from deck import Deck
 
 def start_new_hand():
 	"""Initialize a new hand of Rummy 500."""
-	deck = shuffle_deck() #get a new deck
+	deck = Deck() #get a new deck
 	hand_size = 10 #10 cards dealt to each player
 	player1_hand = [] #empty player 1 hand
 	player2_hand = [] #empty player 2 hand
@@ -28,11 +13,11 @@ def start_new_hand():
 
 	# Deal cards to player hands from the deck
 	for i in range(hand_size):
-		player1_hand.append(deck.pop(0))
-		player2_hand.append(deck.pop(0))
+		player1_hand.append(deck.draw())
+		player2_hand.append(deck.draw())
 
 	# Flip the top card of the deck onto the table top to start the discard line
-	discard_line.append(deck.pop(0))
+	discard_line.append(deck.draw())
 
 	return deck,discard_line,player1_hand,player2_hand
 
@@ -80,13 +65,13 @@ def sort_for_straights(suit_list):
 		try:
 			num_value = int(card.get_value())
 		except:
-			if card.get_value() == "j":
+			if card.get_value() == "jack":
 				num_value = 11
-			elif card.get_value() == "q":
+			elif card.get_value() == "queen":
 				num_value = 12
-			elif card.get_value() == "k":
+			elif card.get_value() == "king":
 				num_value = 13
-			elif card.get_value() == "a":
+			elif card.get_value() == "ace":
 				num_value = 14
 			else:
 				print("Error: straight sorting failed.")
