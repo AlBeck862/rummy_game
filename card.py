@@ -3,6 +3,7 @@ class Card:
 		"""Every card has a suit and a value."""
 		self.suit=suit
 		self.value=value
+		self.image=self._assign_image()
 
 	def __repr__(self):
 		"""What is returned when checking the contents of a card."""
@@ -29,3 +30,8 @@ class Card:
 	def get_value(self):
 		"""Returns the card's value."""
 		return self.value.lower()
+
+	def _assign_image(self):
+		"""CURRENTLY PLACEHOLDER CODE. Assign the correct image to the card."""
+		image = self.suit + " " + self.value
+		return image

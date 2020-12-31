@@ -5,10 +5,15 @@ Details here
 import pygame
 import random
 from rummy_fxns import *
+from button import Button
+from deck import Deck
 # import numpy as np
 
 # Initialize PyGame
 pygame.init()
+
+# Initialize the clock
+# clock = pygame.time.Clock()
 
 # Window parameters
 size = width, height = 1100,700
@@ -21,7 +26,37 @@ card_size = [50,100]
 card_colour = 0,0,0
 card_locations = [(50,50,card_size[0],card_size[1]),(150,50,card_size[0],card_size[1]),(250,50,card_size[0],card_size[1])]
 
-### PUT ALL OF THIS INTO ANOTHER LOOP THAT ENDS WHEN A SCORE OF 500 IS REACHED
+run = True
+while run:
+
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT: 
+			pygame.quit()
+			quit()
+
+	screen.fill(bg)
+
+	test = Button((75,75),(450,100),(0,0,0))
+	test.create(screen)
+
+	for loc in card_locations:
+		pygame.draw.rect(screen,card_colour,loc)
+
+	pygame.display.update()
+
+
+## PLAN ##
+# one loop for the game/screen refresh --> must be triggered every time an action of any kind is taken (how do I implement this?)
+# one loop to play the hand
+# one loop to play the game (includes many hands)
+## PLAN ##
+
+## IDEAS ##
+# create a "game" class that contains all game info like the current deck, the current scores, player names?
+## IDEAS ##
+
+
+### PUT ALL OF THIS INTO ANOTHER LOOP THAT ENDS WHEN A SCORE OF 500 IS REACHED --> "game loop"
 
 # Initialize a new hand of Rummy 500
 deck,discard_line,player1_hand,player2_hand = start_new_hand()
@@ -30,8 +65,8 @@ deck,discard_line,player1_hand,player2_hand = start_new_hand()
 player1_turn = True
 player2_turn = False
 
-# Play the hand. The hand ends when one player no longer has any cards in hand.
-while (len(player1_hand) != 0) and (len(player2_hand) != 0):
+# Play the hand. The hand ends when one player no longer has any cards in hand. --> "hand loop"
+while (len(player1_hand) != 0) and (len(player2_hand) != 0) and not deck.check_if_empty():
 	
 	# First player's turn
 	if player1_turn:
@@ -63,42 +98,40 @@ while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 				first_card = card_options[straight[1]]
 				last_card = card_options[straight[2]]
 				print("You have a straight from the " + first_card + " to the " + last_card + " of " + suit_type + "!")
-
-		break
 		
-		print("What would you like to do? Type the number of the desired option.")
-		print("Option #1: Discard to the discard line and end your turn.")
-		print("Option #2: Discard a triplet to your tabletop.")
-		print("Option #3: Discard a quartet to your tabletop.")
-		print("Option #4: Discard a straight to your tabletop.")
-		print("\n")
+		# print("What would you like to do? Type the number of the desired option.")
+		# print("Option #1: Discard to the discard line and end your turn.")
+		# print("Option #2: Discard a triplet to your tabletop.")
+		# print("Option #3: Discard a quartet to your tabletop.")
+		# print("Option #4: Discard a straight to your tabletop.")
+		# print("\n")
 
-		decision_making = True
-		while decision_making:
+		# decision_making = True
+		# while decision_making:
 
-			option = input()
+		# 	option = input()
 
-			if option == 1:
-				print("This is your hand:")
-				print(player1_hand)
-				while True:
-					print("What would you like to discard? Type the card as shown.")
-					discard = input()
+		# 	if option == 1:
+		# 		print("This is your hand:")
+		# 		print(player1_hand)
+		# 		while True:
+		# 			print("What would you like to discard? Type the card as shown.")
+		# 			discard = input()
 
-					if discard.lower() in [item.lower() for item in player1_hand]:
-						# Move that card from the hand to the discard line.
-						break
-					else:
-						print("Invalid card. Try again.")
+		# 			if discard.lower() in [item.lower() for item in player1_hand]:
+		# 				# Move that card from the hand to the discard line.
+		# 				break
+		# 			else:
+		# 				print("Invalid card. Try again.")
 
-			elif option == 2:
-				pass
-			elif option == 3:
-				pass
-			elif option == 4:
-				pass
-			else:
-				print("Invalid option number. Try again.")
+			# elif option == 2:
+			# 	pass
+			# elif option == 3:
+			# 	pass
+			# elif option == 4:
+			# 	pass
+			# else:
+			# 	print("Invalid option number. Try again.")
 
 
 
@@ -125,19 +158,6 @@ while (len(player1_hand) != 0) and (len(player2_hand) != 0):
 		print("Error: nobody's turn.")
 
 ### END OF SCORE LOOP
-
-
-run = False #skip the window creation while debugging
-while run:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT: run = False
-
-	screen.fill(bg)
-
-	for loc in card_locations:
-		pygame.draw.rect(screen,card_colour,loc)
-
-	pygame.display.update()
 
 # Quit PyGame
 pygame.quit()

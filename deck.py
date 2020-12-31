@@ -3,7 +3,19 @@ import itertools
 from card import Card
 
 class Deck:
-	def generate_deck(self):
+	def __init__(self):
+		"""Every deck contains the standard 52 cards in randomized order"""
+		self.contents = self._generate_deck()
+
+	def __repr__(self):
+		"""What is returned when checking the contents (and order) of a deck."""
+		return self.contents
+
+	def draw(self):
+		"""Replaces .pop(0) functionality used for lists: always draws from the top (start) of the deck."""
+		return self.contents.pop(0)
+
+	def _generate_deck(self):
 		"""Generate a shuffled (randomized) deck of 52 unique cards."""
 		deck = []
 		suits = ["Hearts","Diamonds","Clubs","Spades"]
@@ -18,14 +30,9 @@ class Deck:
 
 		return deck
 
-	def __init__(self):
-		"""Every deck contains the standard 52 cards in randomized order"""
-		self.contents = self.generate_deck()
-
-	def __repr__(self):
-		"""What is returned when checking the contents (and order) of a deck."""
-		return self.contents
-
-	def draw(self):
-		"""Replaces .pop(0) functionality used for lists: always draws from the top (start) of the deck."""
-		return self.contents.pop(0)
+	def check_if_empty(self):
+		"""Returns true if the deck is empty, otherwise, return false."""
+		if len(self.contents) == 0: #empty deck
+			return True
+		else: #deck still contains cards
+			return False
