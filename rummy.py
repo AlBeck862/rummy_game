@@ -12,9 +12,6 @@ from deck import Deck
 # Initialize PyGame
 pygame.init()
 
-# Initialize the clock
-# clock = pygame.time.Clock()
-
 # Window parameters
 size = width, height = 1100,700
 bg = 0,180,0 #green background
