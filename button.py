@@ -14,7 +14,7 @@ class Button:
 		self.y = position[1]
 		self.colour = colour #RGB tuple
 
-	def create(self,screen):
-		"""Generate the button."""
+	def show(self,screen):
+		"""Display the button."""
 		button_location = (self.x,self.y,self.width,self.height)
 		pygame.draw.rect(screen,self.colour,button_location)

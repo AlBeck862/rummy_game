@@ -37,15 +37,10 @@ class Game:
 
 	def new_round(self):
 		"""Update round-specific values such as the deck and the player hands."""
-		
-		# adapt rummy_fxns.py's "start_new_hand()" function:
-			# set player hands
-			# set discard line (turn the deck's top card)
+		self.deck = self.player1.draw_from_deck(self.deck,10) #player 1 draws 10 cards, the deck is updated
+		self.deck = self.player2.draw_from_deck(self.deck,10) #player 2 draws 10 cards, the deck is updated
+		self.discard_line.append(self.deck.draw()) #turn the top card of the deck to start the discard line
 
-		self.player1.draw_from_deck(self.deck,10) #player 1 draws 10 cards
-		self.player2.draw_from_deck(self.deck,10) #player 2 draws 10 cards
-
-		pass
 
 	def update_score(self):
 		"""Update player scores after a round is completed."""

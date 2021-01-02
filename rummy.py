@@ -34,7 +34,7 @@ while run:
 	screen.fill(bg)
 
 	test = Button((75,75),(450,100),(0,0,0))
-	test.create(screen)
+	test.show(screen)
 
 	for loc in card_locations:
 		pygame.draw.rect(screen,card_colour,loc)
