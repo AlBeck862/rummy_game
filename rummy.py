@@ -2,65 +2,13 @@
 Details here
 """
 
-import pygame
-import random
-from rummy_fxns import *
-from button import Button
-from deck import Deck
-# import numpy as np
+from game import  Game
 
-# Initialize PyGame
-pygame.init()
+# Play Rummy 500
+g = Game()
+g.play()
 
-# Window parameters
-size = width, height = 1100,700
-bg = 0,180,0 #green background
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Rummy 500")
-
-# Card parameters
-card_size = [50,100]
-card_colour = 0,0,0
-card_locations = [(50,50,card_size[0],card_size[1]),(150,50,card_size[0],card_size[1]),(250,50,card_size[0],card_size[1])]
-
-run = True
-while run:
-
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT: 
-			pygame.quit()
-			quit()
-
-	screen.fill(bg)
-
-	test = Button((75,75),(450,100),(0,0,0))
-	test.show(screen)
-
-	for loc in card_locations:
-		pygame.draw.rect(screen,card_colour,loc)
-
-	pygame.display.update()
-
-
-## PLAN ##
-# one loop for the game/screen refresh --> must be triggered every time an action of any kind is taken (how do I implement this?)
-# one loop to play the hand
-# one loop to play the game (includes many hands)
-## PLAN ##
-
-## IDEAS ##
-# create a "game" class that contains all game info like the current deck, the current scores, player names?
-## IDEAS ##
-
-
-### PUT ALL OF THIS INTO ANOTHER LOOP THAT ENDS WHEN A SCORE OF 500 IS REACHED --> "game loop"
-
-# Initialize a new hand of Rummy 500
-deck,discard_line,player1_hand,player2_hand = start_new_hand()
-
-# Set the turn order
-player1_turn = True
-player2_turn = False
+### NOTHING BELOW THIS LINE WILL RUN ###
 
 # Play the hand. The hand ends when one player no longer has any cards in hand. --> "hand loop"
 while (len(player1_hand) != 0) and (len(player2_hand) != 0) and not deck.check_if_empty():

@@ -1,4 +1,10 @@
+import pygame
+import os
+
 class Card:
+	#All possible cards. Loaded ace-king, heart-diamond-club-spade.
+	all_cards = [pygame.image.load("cards/" + str(x) + ".png") for x in range(52)] #class variable to avoid reloading every image for every new card object
+
 	def __init__(self,suit,value):
 		"""Every card has a suit and a value."""
 		self.suit=suit
@@ -32,6 +38,23 @@ class Card:
 		return self.value.lower()
 
 	def _assign_image(self):
-		"""CURRENTLY PLACEHOLDER CODE. Assign the correct image to the card."""
-		image = self.suit + " " + self.value
-		return image
+		"""Assign the correct image to the card."""
+		possible_values = ["Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"]
+		possible_suits = ["Hearts","Diamonds","Clubs","Spades"]
+
+		# Variable to allow breaking out of the outside loop below
+		break_again = False
+		
+		# Determine the correct card image to assign to a particular card object given the card's suit and value
+		card_selection = 0
+		for i in range(len(possible_values)):
+			for j in range(len(possible_suits)):
+				if possible_values[i] == self.value and possible_suits[j] == self.suit:
+					break_again = True
+					break
+				card_selection += 1
+			if break_again:
+				break
+
+		return self.all_cards[card_selection] #return the correct card image (a PyGame surface)
+		

@@ -10,8 +10,8 @@ class Game:
 		self.window = pygame.display.set_mode((self.width, self.height))
 		pygame.display.set_caption("Rummy 500")
 		self.bg = 0,180,0 #green
-		self.player1 = Player(p1)
-		self.player2 = Player(p2)
+		self.player1 = Player(p1, True)
+		self.player2 = Player(p2, False)
 		self.deck = Deck()
 		self.hand_size = 10 #number of cards dealt to each player
 		self.discard_line = []
@@ -22,9 +22,11 @@ class Game:
 		# Initialize the clock
 		clock = pygame.time.Clock()
 
-		# Game loop
-		run = True
-		while run:
+		# The following goes into a larger "game loop" that operates off of player scores:
+		# while (self.player1.score < 500) and (self.player2.score < 500):
+		self.new_round()
+
+		while (len(self.player1.hand) != 0) and (len(self.player2.hand) != 0) and not self.deck.check_if_empty():
 
 			clock.tick(30) #run the game at 30 fps
 
@@ -33,7 +35,30 @@ class Game:
 					pygame.quit()
 					quit()
 
-			self.screen.fill(self.bg)
+			self.window.fill(self.bg)
+
+			if self.player1.turn:
+				# Test to display the correct card on the screen
+				self.window.blit(self.deck.contents[0].image,(100,100))
+				print(self.deck.contents[0].suit)
+				print(self.deck.contents[0].value)
+
+			elif self.player2.turn:
+				pass
+
+			else:
+				print("Player turn error.")
+
+
+			pygame.display.update()
+
+		# Update the scores after the round ends
+		# update_score()
+
+
+	def draw(self):
+		"""Update what is shown on-screen."""
+		pass
 
 	def new_round(self):
 		"""Update round-specific values such as the deck and the player hands."""
