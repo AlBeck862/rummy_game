@@ -1,6 +1,7 @@
 import pygame
 from deck import Deck
 from player import Player
+from button import Button
 
 class Game:
 	def __init__(self,p1="Player 1",p2="Player 2"):
@@ -39,15 +40,19 @@ class Game:
 
 			if self.player1.turn:
 				# Test to display the correct card on the screen
-				self.window.blit(self.deck.contents[0].image,(100,100))
-				print(self.deck.contents[0].suit)
-				print(self.deck.contents[0].value)
+				# self.window.blit(self.deck.contents[0].image,(100,100))
+				# print(self.deck.contents[0].suit)
+				# print(self.deck.contents[0].value)
+				pass
 
 			elif self.player2.turn:
 				pass
 
 			else:
 				print("Player turn error.")
+
+			button = Button((450,75),(200,500),(255,255,255),"Hello World!")
+			button.exist(self.window)
 
 
 			pygame.display.update()
