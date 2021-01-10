@@ -5,13 +5,13 @@ import os
 CARD_SIZE = (125,191)
 
 class Card:
-	# All possible cards. Loaded ace-king, heart-diamond-club-spade.
+	# All possible cards. Loaded ace-king, heart-diamond-club-spade. Each card is scaled appropriately.
 	all_cards = [pygame.transform.scale(pygame.image.load("cards/" + str(x) + ".png"),CARD_SIZE) for x in range(52)] #class variable to avoid reloading every image for every new card object
 
 	def __init__(self,suit,value):
 		"""Every card has a suit and a value."""
-		self.suit=suit
-		self.value=value
+		self.suit=suit #string
+		self.value=value #string
 		self.image=self._assign_image()
 
 	def __repr__(self):

@@ -8,7 +8,7 @@ class Game:
 	BLACK = (0,0,0)
 	LIGHT_GREEN = (0,180,0)
 	FPS = 30 #fps at which the game runs
-	DECK_LOC = (1400,390) #x,y position of the back of the deck
+	DECK_LOC = (50,390) #x,y position of the back of the deck
 	CARD_SIZE = (125,191) #set size of a card, used for image scaling
 
 	def __init__(self,p1="Player 1",p2="Player 2"):
@@ -76,12 +76,25 @@ class Game:
 		# Display the back of the deck and a count of cards remaining in the deck
 		self.card_back = pygame.transform.scale(self.card_back,self.CARD_SIZE)
 		self.window.blit(self.card_back,self.DECK_LOC)
-		deck_num_surface,deck_num_rect = self._create_text(str(len(self.deck.contents)),14,self.DECK_LOC,self.CARD_SIZE,font="Arial Bold") #get the text to be overlaid on the deck
-		self.window.blit(deck_num_surface,deck_num_rect) #overlay the number of cards remaining in the deck
+		self._create_text(str(len(self.deck.contents)),14,self.DECK_LOC,self.CARD_SIZE,font="Arial Bold") #overlay the number of remaining cards in the deck
 
 		# Display the discard line
-		# ***NOTE: must be expanded to be compatible with any length of the discard line
-		self.window.blit(self.discard_line[0].image,(1250,390)) #NOTE: location should be made more adaptive to the length of the discard line
+		self._display_line(self.discard_line,200,390)
+
+		# Display player 1's hand
+		self._display_line(self.player1.hand,50,180)
+
+		# Display player 2's hand
+		self._display_line(self.player2.hand,50,600)
+
+		# Display the name of the player whose turn it is currently
+		if self.player1.turn:
+			current_player = self.player1.name
+		else:
+			current_player = self.player2.name
+
+		self._create_text(current_player + "'s turn",20,(1450,925),(100,100))
+
 
 		# Test image
 		# self.window.blit(self.deck.contents[0].image,(100,100))
@@ -119,7 +132,22 @@ class Game:
 		else:
 			raise NameError("Invalid text placement mode")
 
-		return text_surface,text_rect
+		self.window.blit(text_surface, text_rect)
+
+	def _display_line(self,card_line,start_x,start_y):
+		"""
+		Display a line of cards on the screen.
+		card_line: list, cards to be displayed
+		start_x: int, x position of the first card in the line
+		start_y: int, y position of the card line
+		"""
+		if len(card_line) <= 40:
+			px_offset = 30 #offset between discard line cards
+		else: #if too many cards are in the discard line, compress the line to fit more cards on the screen
+			px_offset = 25
+
+		for card_num in range(len(card_line)):
+			self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""
