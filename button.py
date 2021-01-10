@@ -19,7 +19,10 @@ class Button:
 		"""Display the button and make it operational."""
 		button_location = (self.x,self.y,self.width,self.height)
 		
+		# Get the mouse position for button shading effects
 		mouse_position = pygame.mouse.get_pos()
+
+		# Set the text to be displayed on the button
 		font = pygame.font.SysFont("Arial",14)
 		text_surface = font.render(self.text, True, (0,0,0))
 		text_rect = text_surface.get_rect()
