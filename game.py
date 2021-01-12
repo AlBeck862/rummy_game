@@ -1,7 +1,7 @@
 import pygame
 from deck import Deck
 from player import Player
-from button import Button
+from button import *
 
 class Game:
 	WHITE = (255,255,255)
@@ -52,18 +52,9 @@ class Game:
 				print("new round started")
 				# ADD: tally points
 				self._new_round()
-			
-			if self.player1.turn:
-				pass
-
-			elif self.player2.turn:
-				pass
-
-			else:
-				print("Player turn error.")
 
 			# Refresh what is displayed on-screen
-			self._draw_window()
+			self._draw_window() #move this so that its triggered at specific times, like when the player has to draw from the deck?
 
 		# Update the scores after the round ends
 		# _update_score()
@@ -74,12 +65,11 @@ class Game:
 		self.window.fill(self.bg)
 		
 		# Display the back of the deck and a count of cards remaining in the deck
-		self.card_back = pygame.transform.scale(self.card_back,self.CARD_SIZE)
-		self.window.blit(self.card_back,self.DECK_LOC)
-		self._create_text(str(len(self.deck.contents)),14,self.DECK_LOC,self.CARD_SIZE,font="Arial Bold") #overlay the number of remaining cards in the deck
+		card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold") #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+		card_back.exist(self.window)
 
 		# Display the discard line
-		self._display_line(self.discard_line,200,390)
+		self._display_line(self.discard_line,200,390) #TO-DO: this should be converted to a series of ImageButton objects *************
 
 		# Display player 1's hand
 		self._display_line(self.player1.hand,50,180)
@@ -94,14 +84,6 @@ class Game:
 			current_player = self.player2.name
 
 		self._create_text(current_player + "'s turn",20,(1450,925),(100,100))
-
-
-		# Test image
-		# self.window.blit(self.deck.contents[0].image,(100,100))
-
-		# Test button
-		# button = Button((450,75),(200,500),self.WHITE,"Hello World!")
-		# button.exist(self.window)
 
 		pygame.display.update()
 
@@ -148,6 +130,9 @@ class Game:
 
 		for card_num in range(len(card_line)):
 			self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
+
+	def _draw_from_deck(self):
+		pass
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""
