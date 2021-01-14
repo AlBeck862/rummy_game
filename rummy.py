@@ -2,7 +2,7 @@
 Details here
 """
 
-from game import  Game
+from game import Game
 
 # Play Rummy 500
 g = Game()

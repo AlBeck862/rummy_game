@@ -18,12 +18,13 @@ class Game:
 		self.window = pygame.display.set_mode((self.width, self.height))
 		pygame.display.set_caption("Rummy 500")
 		self.bg = self.LIGHT_GREEN
-		self.player1 = Player(p1, True)
-		self.player2 = Player(p2, False)
+		self.player1 = Player(p1)
+		self.player2 = Player(p2)
 		self.deck = None #the deck is initialized via the play() method below
 		self.hand_size = 10 #number of cards dealt to each player
 		self.discard_line = []
 		self.card_back = pygame.image.load("card_backs/red_back.png")
+		self.state = 2 #set player 1 as the first player (Player 1: 1, Player 2: 2, Pause: 3)
 
 	def play(self):
 		"""Main function that runs the game."""
@@ -33,6 +34,9 @@ class Game:
 
 		# Start the first round of the game
 		self._new_round()
+
+		# TEST CODE, REMOVE ASAP ************************
+		self.player_drawn = False
 
 		# Game loop
 		while True:
@@ -46,6 +50,7 @@ class Game:
 					pygame.quit()
 					quit()
 
+
 			# End the round if either player hand is empty or if the deck is empty
 			if (len(self.player1.hand) == 0) or (len(self.player2.hand) == 0) or self.deck.check_if_empty():
 				# The round is over
@@ -53,8 +58,29 @@ class Game:
 				# ADD: tally points
 				self._new_round()
 
+			# INSERT PLAYER-STATE CHANGE LOGIC HERE (must be before player-specific logic)
+			# INCLUDE: reset of "self.player_drawn" variable to False
+
+			if self.state == 1: #player 1
+				# Check whether the deck has been clicked (True: clicked, False: not clicked)
+				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
+
+				#check for click on a specific discard line card
+
+
+			elif self.state == 2: #player 2
+				# Check whether the deck has been clicked (True: clicked, False: not clicked)
+				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
+
+				#check for click on a specific discard line card
+			
+
+			elif self.state == 3: #pause menu
+				pass
+
+
 			# Refresh what is displayed on-screen
-			self._draw_window() #move this so that its triggered at specific times, like when the player has to draw from the deck?
+			self._draw_window()
 
 		# Update the scores after the round ends
 		# _update_score()
@@ -63,13 +89,18 @@ class Game:
 	def _draw_window(self):
 		"""Update what is shown on-screen."""
 		self.window.fill(self.bg)
-		
+
 		# Display the back of the deck and a count of cards remaining in the deck
-		card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold") #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
-		card_back.exist(self.window)
+		if self.deck_click:
+			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold",action=self._draw_from_deck()) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+			card_back.exist(self.window)
+			self.deck_click = False #reset deck_click after the click is acted upon
+		else:
+			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold") #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+			card_back.exist(self.window)
 
 		# Display the discard line
-		self._display_line(self.discard_line,200,390) #TO-DO: this should be converted to a series of ImageButton objects *************
+		self._display_line(self.discard_line,200,390) #should this be converted to a series of ImageButton objects? *************
 
 		# Display player 1's hand
 		self._display_line(self.player1.hand,50,180)
@@ -77,13 +108,15 @@ class Game:
 		# Display player 2's hand
 		self._display_line(self.player2.hand,50,600)
 
-		# Display the name of the player whose turn it is currently
-		if self.player1.turn:
-			current_player = self.player1.name
-		else:
-			current_player = self.player2.name
-
-		self._create_text(current_player + "'s turn",20,(1450,925),(100,100))
+		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
+		if self.state == 1:
+			current_player_name = self.player1.name
+			self._create_text(current_player_name + "'s turn",20,(1450,925),(100,100))
+		elif self.state == 2:
+			current_player_name = self.player2.name
+			self._create_text(current_player_name + "'s turn",20,(1450,925),(100,100))
+		elif self.state == 3:
+			self._create_text("Game Paused",20,(1450,925),(100,100))
 
 		pygame.display.update()
 
@@ -131,8 +164,32 @@ class Game:
 		for card_num in range(len(card_line)):
 			self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
 
+	def _mouse_click(self,x,y,width,height):
+		"""Return True if a click is registered in the given region. Otherwise return False"""		
+		# Get the mouse position for button shading effects
+		mouse_position = pygame.mouse.get_pos()
+
+		# Stores the left click in click[0]
+		click = pygame.mouse.get_pressed()
+
+		if (x < mouse_position[0] < (x + width)) and (y < mouse_position[1] < (y + height)) and (click[0] == 1):
+			# Click in the designated region
+			return True
+
+		else:
+			# No click in the designated region
+			return False
+
 	def _draw_from_deck(self):
-		pass
+		"""Draw from the deck."""
+		# If the player has not drawn yet, allow the player to draw
+		if not self.player_drawn:
+			if self.state == 1:
+				self.player1.draw_from_deck(self.deck)
+				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
+			elif self.state == 2:
+				self.player2.draw_from_deck(self.deck)
+				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""

@@ -1,11 +1,10 @@
 from deck import Deck
 
 class Player:
-	def __init__(self,name,turn):
+	def __init__(self,name):
 		self.hand = [] #cards in hand
 		self.discard = [] #cards on tabletop
 		self.score = 0 #current score in the game
-		self.turn = turn
 		self.name = name
 
 	def draw_from_deck(self,deck,num_cards=1):
