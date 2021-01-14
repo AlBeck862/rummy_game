@@ -10,13 +10,21 @@ class Game:
 	FPS = 30 #fps at which the game runs
 	DECK_LOC = (50,390) #x,y position of the back of the deck
 	CARD_SIZE = (125,191) #set size of a card, used for image scaling
+	WIDTH = 1600
+	HEIGHT = 1000 
 
 	def __init__(self,p1="Player 1",p2="Player 2"):
+		"""
+		ADD: variable descriptions
+		"""
+
+		# Initialize PyGame
 		pygame.init()
-		self.width = 1600
-		self.height = 1000
-		self.window = pygame.display.set_mode((self.width, self.height))
+		
+		# Game window initialization
+		self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 		pygame.display.set_caption("Rummy 500")
+		
 		self.bg = self.LIGHT_GREEN
 		self.player1 = Player(p1)
 		self.player2 = Player(p2)
@@ -24,7 +32,7 @@ class Game:
 		self.hand_size = 10 #number of cards dealt to each player
 		self.discard_line = []
 		self.card_back = pygame.image.load("card_backs/red_back.png")
-		self.state = 2 #set player 1 as the first player (Player 1: 1, Player 2: 2, Pause: 3)
+		self.state = 1 #set player 1 as the first player (Player 1: 1, Player 2: 2, Pause: 3)
 
 	def play(self):
 		"""Main function that runs the game."""
@@ -85,6 +93,18 @@ class Game:
 		# Update the scores after the round ends
 		# _update_score()
 
+		# ***************************
+		# IDEA: if the player clicks a card, it goes to a "selected card area". The program can then continually
+		# check to see if the cards in that area form a triplet/quartet/straight, and, if so, that combo of cards
+		# can be discarded to the tabletop for the current player. In case of errors, clicking a card in the
+		# "selected card area" would return the card to the hand. If only one card is "staged" in that area, a button could
+		# appear to allow the player to discard to the discard line and end their turn (+ another button to discard onto a
+		# previously discarded triple/quartet/straight, if applicable). If more than one card is "staged" in that area,
+		# another button could appear to allow the player to discard to the tabletop.
+		
+		# OR: create a solid and differently-coloured box around selected/clicked cards to indicate that they are selected
+		# for discarding to the tabletop. The discard button system could work similarly to what is described above.
+		# ***************************
 
 	def _draw_window(self):
 		"""Update what is shown on-screen."""
@@ -100,13 +120,13 @@ class Game:
 			card_back.exist(self.window)
 
 		# Display the discard line
-		self._display_line(self.discard_line,200,390) #should this be converted to a series of ImageButton objects? *************
+		self._display_line(self.discard_line,200,390,button=True) #should this be converted to a series of ImageButton objects? *************
 
 		# Display player 1's hand
-		self._display_line(self.player1.hand,50,180)
+		self._display_line(self.player1.hand,50,180,button=True)
 
 		# Display player 2's hand
-		self._display_line(self.player2.hand,50,600)
+		self._display_line(self.player2.hand,50,600,button=True)
 
 		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
 		if self.state == 1:
@@ -118,6 +138,7 @@ class Game:
 		elif self.state == 3:
 			self._create_text("Game Paused",20,(1450,925),(100,100))
 
+		# Refresh the screen
 		pygame.display.update()
 
 	def _new_round(self):
@@ -138,31 +159,47 @@ class Game:
 		font: string, font type, defaults to Arial
 		mode: string, describes how the text should be overlaid relative to the surface, defaults to centered
 		"""
+		# Prepare the text to be overlaid onto the screen
 		font = pygame.font.SysFont(font,text_size)
 		text_surface = font.render(text, True, colour)
 		text_rect = text_surface.get_rect()
 
-		if mode == "center":
+		# Different text placements relative to the position and box size
+		if mode == "center": #centered text
 			text_rect.center = ((position[0] + box_size[0]/2),(position[1] + box_size[1]/2))
 		else:
 			raise NameError("Invalid text placement mode")
 
+		# Display the text
 		self.window.blit(text_surface, text_rect)
 
-	def _display_line(self,card_line,start_x,start_y):
+	def _display_line(self,card_line,start_x,start_y,button=False):
 		"""
 		Display a line of cards on the screen.
 		card_line: list, cards to be displayed
-		start_x: int, x position of the first card in the line
-		start_y: int, y position of the card line
+		start_x: int, x position of the first image in the line
+		start_y: int, y position of the image line
 		"""
 		if len(card_line) <= 40:
 			px_offset = 30 #offset between discard line cards
 		else: #if too many cards are in the discard line, compress the line to fit more cards on the screen
 			px_offset = 25
 
-		for card_num in range(len(card_line)):
-			self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
+		if button: #if the images in the line are also buttons, generate ImageButton objects
+			for card_num in range(len(card_line)):
+				
+				# Set last_card to True if the last image in the line is reached
+				if card_num == len(card_line) - 1:
+					last_card = True
+				else:
+					last_card = False
+
+				image = ImageButton(size=self.CARD_SIZE,position=(start_x+(card_num*px_offset),start_y),image=card_line[card_num].image,action=None,offset=px_offset,last_element=last_card) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+				image.exist(self.window)
+
+		else: #if the images in the line are simply images, display the images directly to the screen with no added logic
+			for card_num in range(len(card_line)):
+				self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
 
 	def _mouse_click(self,x,y,width,height):
 		"""Return True if a click is registered in the given region. Otherwise return False"""		
