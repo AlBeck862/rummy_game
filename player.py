@@ -3,7 +3,7 @@ from deck import Deck
 class Player:
 	def __init__(self,name):
 		self.hand = [] #cards in hand
-		self.discard = [] #cards on tabletop
+		self.tabletop = [] #cards on tabletop
 		self.score = 0 #current score in the game
 		self.name = name
 
@@ -17,9 +17,17 @@ class Player:
 
 		return deck
 
-	def draw_from_discard_line(self,discard_line,num_cards=1):
-		"""Draw a specified number of cards from the discard line. Defaults to the top card."""
-		pass
+	def draw_from_discard_line(self,discard_line,discard_line_index):
+		"""
+		Draw a specified number of cards from the discard line.
+		Returns an updated discard line.
+		"""
+		num_cards = len(discard_line) - discard_line_index #calculate the number of cards to draw from the end of the discard line
+
+		for i in range(num_cards):
+			self.hand.append(discard_line.pop())
+
+		return discard_line
 
 	def list_hand(self):
 		"""Print the cards in the player's hand to the console."""

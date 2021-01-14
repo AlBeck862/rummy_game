@@ -4,18 +4,37 @@ from player import Player
 from button import *
 
 class Game:
+	# Colours
 	WHITE = (255,255,255)
 	BLACK = (0,0,0)
 	LIGHT_GREEN = (0,180,0)
+	
+	# Misc. variables
 	FPS = 30 #fps at which the game runs
 	DECK_LOC = (50,390) #x,y position of the back of the deck
 	CARD_SIZE = (125,191) #set size of a card, used for image scaling
+	LINE_PX_OFFSET = 25 #offset between cards in a line
+	
+	# Width and height of the window
 	WIDTH = 1600
-	HEIGHT = 1000 
+	HEIGHT = 1000
+	
+	# Starting coordinates of the discard line
+	DISCARD_X = 200
+	DISCARD_Y = 390
+
+	# Starting coordinates of Player 1's hand
+	PLAYER_1_X = 50
+	PLAYER_1_Y = 180
+
+	# Starting coordinates of Player 2's hand
+	PLAYER_2_X = 50
+	PLAYER_2_Y = 600
 
 	def __init__(self,p1="Player 1",p2="Player 2"):
 		"""
-		ADD: variable descriptions
+		p1: string, player 1's name, defaults to "Player 1"
+		p2: string, player 2's name, defaults to "Player 2"
 		"""
 
 		# Initialize PyGame
@@ -25,13 +44,13 @@ class Game:
 		self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 		pygame.display.set_caption("Rummy 500")
 		
-		self.bg = self.LIGHT_GREEN
-		self.player1 = Player(p1)
-		self.player2 = Player(p2)
+		self.bg = self.LIGHT_GREEN #the screen's background color
+		self.player1 = Player(p1) #create Player 1
+		self.player2 = Player(p2) #create Player 2
 		self.deck = None #the deck is initialized via the play() method below
 		self.hand_size = 10 #number of cards dealt to each player
-		self.discard_line = []
-		self.card_back = pygame.image.load("card_backs/red_back.png")
+		self.discard_line = [] #an empty discard line, populated by the internal _new_round() method
+		self.card_back = pygame.image.load("card_backs/red_back.png") #the back of a card to represent the deck of cards on the screen
 		self.state = 1 #set player 1 as the first player (Player 1: 1, Player 2: 2, Pause: 3)
 
 	def play(self):
@@ -43,7 +62,7 @@ class Game:
 		# Start the first round of the game
 		self._new_round()
 
-		# TEST CODE, REMOVE ASAP ************************
+		# TEST CODE, REMOVE ASAP *********************************
 		self.player_drawn = False
 
 		# Game loop
@@ -73,14 +92,48 @@ class Game:
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
 
-				#check for click on a specific discard line card
+				# Check for click on a specific discard line card ***************** MOVE THIS TO A FUNCTION: MIGHT BE REUSED FOR PLAYER HAND CARD CLICKING?
+				for card_num in range(len(self.discard_line)):
+					# Set last_card to True when the last card in the discard line is reached
+					if card_num == len(self.discard_line) - 1:
+						last_card = True
+					else:
+						last_card = False
+
+					# Adapt the mouse click region depending on the card in the discard line (partially covered card versus end-of-line card)
+					if last_card:
+						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
+					else:
+						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.LINE_PX_OFFSET,self.CARD_SIZE[1])
+					
+					# If a card in the discard line was clicked, store the card's position in the discard line and exit the loop
+					if self.discard_line_click:
+						self.discard_line_index = card_num #stores the card that was selected in the discard line
+						break
 
 
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
+				
+				# Check for click on a specific discard line card ***************** MOVE THIS TO A FUNCTION: MIGHT BE REUSED FOR PLAYER HAND CARD CLICKING?
+				for card_num in range(len(self.discard_line)):
+					# Set last_card to True when the last card in the discard line is reached
+					if card_num == len(self.discard_line) - 1:
+						last_card = True
+					else:
+						last_card = False
 
-				#check for click on a specific discard line card
+					# Adapt the mouse click region depending on the card in the discard line (partially covered card versus end-of-line card)
+					if last_card:
+						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
+					else:
+						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.LINE_PX_OFFSET,self.CARD_SIZE[1])
+					
+					# If a card in the discard line was clicked, store the card's position in the discard line and exit the loop
+					if self.discard_line_click:
+						self.discard_line_index = card_num #stores the card that was selected in the discard line
+						break
 			
 
 			elif self.state == 3: #pause menu
@@ -120,13 +173,17 @@ class Game:
 			card_back.exist(self.window)
 
 		# Display the discard line
-		self._display_line(self.discard_line,200,390,button=True) #should this be converted to a series of ImageButton objects? *************
+		if self.discard_line_click:
+			self._display_line(self.discard_line,self.DISCARD_X,self.DISCARD_Y,button=True,action=self._draw_from_discard_line())
+			self.discard_line_click = False #reset discard_line_click after the click is acted upon
+		else:
+			self._display_line(self.discard_line,self.DISCARD_X,self.DISCARD_Y,button=True)
 
 		# Display player 1's hand
-		self._display_line(self.player1.hand,50,180,button=True)
+		self._display_line(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,button=True)
 
 		# Display player 2's hand
-		self._display_line(self.player2.hand,50,600,button=True)
+		self._display_line(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,button=True)
 
 		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
 		if self.state == 1:
@@ -173,18 +230,15 @@ class Game:
 		# Display the text
 		self.window.blit(text_surface, text_rect)
 
-	def _display_line(self,card_line,start_x,start_y,button=False):
+	def _display_line(self,card_line,start_x,start_y,button=False,action=None):
 		"""
 		Display a line of cards on the screen.
 		card_line: list, cards to be displayed
 		start_x: int, x position of the first image in the line
 		start_y: int, y position of the image line
+		button: bool, is this a line of images or of button images, defaults to False
+		action: function, if this is a line of button images, what do the buttons do, defaults to None
 		"""
-		if len(card_line) <= 40:
-			px_offset = 30 #offset between discard line cards
-		else: #if too many cards are in the discard line, compress the line to fit more cards on the screen
-			px_offset = 25
-
 		if button: #if the images in the line are also buttons, generate ImageButton objects
 			for card_num in range(len(card_line)):
 				
@@ -194,12 +248,12 @@ class Game:
 				else:
 					last_card = False
 
-				image = ImageButton(size=self.CARD_SIZE,position=(start_x+(card_num*px_offset),start_y),image=card_line[card_num].image,action=None,offset=px_offset,last_element=last_card) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+				image = ImageButton(size=self.CARD_SIZE,position=(start_x+(card_num*self.LINE_PX_OFFSET),start_y),image=card_line[card_num].image,action=action,offset=self.LINE_PX_OFFSET,last_element=last_card) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
 				image.exist(self.window)
 
 		else: #if the images in the line are simply images, display the images directly to the screen with no added logic
 			for card_num in range(len(card_line)):
-				self.window.blit(card_line[card_num].image,(start_x+(card_num*px_offset),start_y))
+				self.window.blit(card_line[card_num].image,(start_x+(card_num*self.LINE_PX_OFFSET),start_y))
 
 	def _mouse_click(self,x,y,width,height):
 		"""Return True if a click is registered in the given region. Otherwise return False"""		
@@ -222,10 +276,21 @@ class Game:
 		# If the player has not drawn yet, allow the player to draw
 		if not self.player_drawn:
 			if self.state == 1:
-				self.player1.draw_from_deck(self.deck)
+				self.deck = self.player1.draw_from_deck(self.deck)
 				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
 			elif self.state == 2:
-				self.player2.draw_from_deck(self.deck)
+				self.deck = self.player2.draw_from_deck(self.deck)
+				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
+
+	def _draw_from_discard_line(self):
+		"""Draw from the discard line."""
+		# If the player has not drawn yet, allow the player to draw
+		if not self.player_drawn:
+			if self.state == 1:
+				self.discard_line = self.player1.draw_from_discard_line(self.discard_line,self.discard_line_index)
+				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
+			elif self.state == 2:
+				self.discard_line = self.player2.draw_from_discard_line(self.discard_line,self.discard_line_index)
 				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
 
 	def _update_score(self):
