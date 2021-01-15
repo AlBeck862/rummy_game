@@ -51,7 +51,7 @@ class Game:
 		self.hand_size = 10 #number of cards dealt to each player
 		self.discard_line = [] #an empty discard line, populated by the internal _new_round() method
 		self.card_back = pygame.image.load("card_backs/red_back.png") #the back of a card to represent the deck of cards on the screen
-		self.state = 1 #set player 1 as the first player (Player 1: 1, Player 2: 2, Pause: 3)
+		self.state = 1 #the state of the game (Player 1: 1, Player 2: 2, Pause: 3), defaults to Player 1
 
 	def play(self):
 		"""Main function that runs the game."""
@@ -92,48 +92,16 @@ class Game:
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
 
-				# Check for click on a specific discard line card ***************** MOVE THIS TO A FUNCTION: MIGHT BE REUSED FOR PLAYER HAND CARD CLICKING?
-				for card_num in range(len(self.discard_line)):
-					# Set last_card to True when the last card in the discard line is reached
-					if card_num == len(self.discard_line) - 1:
-						last_card = True
-					else:
-						last_card = False
-
-					# Adapt the mouse click region depending on the card in the discard line (partially covered card versus end-of-line card)
-					if last_card:
-						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
-					else:
-						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.LINE_PX_OFFSET,self.CARD_SIZE[1])
-					
-					# If a card in the discard line was clicked, store the card's position in the discard line and exit the loop
-					if self.discard_line_click:
-						self.discard_line_index = card_num #stores the card that was selected in the discard line
-						break
+				# Check for click on a specific discard line card
+				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
 
 
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
 				
-				# Check for click on a specific discard line card ***************** MOVE THIS TO A FUNCTION: MIGHT BE REUSED FOR PLAYER HAND CARD CLICKING?
-				for card_num in range(len(self.discard_line)):
-					# Set last_card to True when the last card in the discard line is reached
-					if card_num == len(self.discard_line) - 1:
-						last_card = True
-					else:
-						last_card = False
-
-					# Adapt the mouse click region depending on the card in the discard line (partially covered card versus end-of-line card)
-					if last_card:
-						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
-					else:
-						self.discard_line_click = self._mouse_click(self.DISCARD_X+(card_num*self.LINE_PX_OFFSET),self.DISCARD_Y,self.LINE_PX_OFFSET,self.CARD_SIZE[1])
-					
-					# If a card in the discard line was clicked, store the card's position in the discard line and exit the loop
-					if self.discard_line_click:
-						self.discard_line_index = card_num #stores the card that was selected in the discard line
-						break
+				# Check for click on a specific discard line card
+				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
 			
 
 			elif self.state == 3: #pause menu
@@ -197,6 +165,35 @@ class Game:
 
 		# Refresh the screen
 		pygame.display.update()
+
+	def _line_click(self,line,x,y,width,height):
+		"""Determine which card in a card line has been selected."""
+		# Set line_clicked and line_index to default values: necessary for 0-card lines to avoid skipping assignment (by skipping the loop)
+		line_clicked = False
+		line_index = None
+
+		# Check for click on a specific discard line card
+		for card_num in range(len(line)):
+			# Set last_card to True when the last card in the discard line is reached
+			if card_num == len(line) - 1:
+				last_card = True
+			else:
+				last_card = False
+
+			# Adapt the mouse click region depending on the card in the discard line (partially covered card versus end-of-line card)
+			if last_card:
+				line_clicked = self._mouse_click(x+(card_num*self.LINE_PX_OFFSET),y,width,height)
+			else:
+				line_clicked = self._mouse_click(x+(card_num*self.LINE_PX_OFFSET),y,self.LINE_PX_OFFSET,height)
+			
+			# If a card in the discard line was clicked, store the card's position in the discard line and exit the loop
+			if line_clicked:
+				line_index = card_num #stores the card that was selected in the discard line
+				break
+			else:
+				line_index = None
+
+		return line_clicked,line_index
 
 	def _new_round(self):
 		"""Update round-specific values such as the deck and the player hands."""
