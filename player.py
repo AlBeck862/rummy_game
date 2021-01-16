@@ -4,6 +4,7 @@ class Player:
 	def __init__(self,name):
 		self.hand = [] #cards in hand
 		self.tabletop = [] #cards on tabletop
+		self.stage = [] #region of cards primed to be discarded
 		self.score = 0 #current score in the game
 		self.name = name
 
@@ -28,6 +29,10 @@ class Player:
 			self.hand.append(discard_line.pop())
 
 		return discard_line
+
+	def stage_for_discard(self,hand_index):
+		"""Move a card from the player's hand to that player's stage."""
+		self.stage.append(self.hand.pop(hand_index))
 
 	def list_hand(self):
 		"""Print the cards in the player's hand to the console."""

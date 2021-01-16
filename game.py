@@ -1,4 +1,5 @@
 import pygame
+import time
 from deck import Deck
 from player import Player
 from button import *
@@ -11,25 +12,33 @@ class Game:
 	
 	# Misc. variables
 	FPS = 30 #fps at which the game runs
-	DECK_LOC = (50,390) #x,y position of the back of the deck
+	DECK_LOC = (50,410) #x,y position of the back of the deck
 	CARD_SIZE = (125,191) #set size of a card, used for image scaling
 	LINE_PX_OFFSET = 25 #offset between cards in a line
 	
 	# Width and height of the window
 	WIDTH = 1600
-	HEIGHT = 1000
+	HEIGHT = 1010
 	
 	# Starting coordinates of the discard line
 	DISCARD_X = 200
-	DISCARD_Y = 390
+	DISCARD_Y = 410
 
 	# Starting coordinates of Player 1's hand
 	PLAYER_1_X = 50
-	PLAYER_1_Y = 180
+	PLAYER_1_Y = 210
 
 	# Starting coordinates of Player 2's hand
 	PLAYER_2_X = 50
-	PLAYER_2_Y = 600
+	PLAYER_2_Y = 610
+
+	# Starting coordinates of Player 1's stage
+	PLAYER_1_STAGE_X = 50
+	PLAYER_1_STAGE_Y = 10
+
+	# Starting coordinates of Player 2's stage
+	PLAYER_2_STAGE_X = 50
+	PLAYER_2_STAGE_Y = 810
 
 	def __init__(self,p1="Player 1",p2="Player 2"):
 		"""
@@ -95,6 +104,8 @@ class Game:
 				# Check for click on a specific discard line card
 				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
 
+				# Check for click on a specific card in Player 1's hand
+				self.player_hand_click, self.player_hand_index = self._line_click(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
 
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
@@ -103,6 +114,8 @@ class Game:
 				# Check for click on a specific discard line card
 				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
 			
+				# Check for click on a specific card in Player 1's hand
+				self.player_hand_click, self.player_hand_index = self._line_click(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
 
 			elif self.state == 3: #pause menu
 				pass
@@ -110,9 +123,6 @@ class Game:
 
 			# Refresh what is displayed on-screen
 			self._draw_window()
-
-		# Update the scores after the round ends
-		# _update_score()
 
 		# ***************************
 		# IDEA: if the player clicks a card, it goes to a "selected card area". The program can then continually
@@ -122,9 +132,6 @@ class Game:
 		# appear to allow the player to discard to the discard line and end their turn (+ another button to discard onto a
 		# previously discarded triple/quartet/straight, if applicable). If more than one card is "staged" in that area,
 		# another button could appear to allow the player to discard to the tabletop.
-		
-		# OR: create a solid and differently-coloured box around selected/clicked cards to indicate that they are selected
-		# for discarding to the tabletop. The discard button system could work similarly to what is described above.
 		# ***************************
 
 	def _draw_window(self):
@@ -148,10 +155,24 @@ class Game:
 			self._display_line(self.discard_line,self.DISCARD_X,self.DISCARD_Y,button=True)
 
 		# Display player 1's hand
-		self._display_line(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,button=True)
+		if self.player_hand_click:
+			self._display_line(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,button=True,action=self._player_card_selected())
+			self.player_hand_click = False #reset player_hand_click after the click is acted upon
+		else:
+			self._display_line(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,button=True)
 
 		# Display player 2's hand
-		self._display_line(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,button=True)
+		if self.player_hand_click:
+			self._display_line(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,button=True,action=self._player_card_selected())
+			self.player_hand_click = False #reset player_hand_click after the click is acted upon
+		else:
+			self._display_line(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,button=True)
+
+		# Display player 1's stage
+		self._display_line(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,button=True)
+
+		# Display player 2's stage
+		self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True)
 
 		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
 		if self.state == 1:
@@ -190,17 +211,34 @@ class Game:
 			if line_clicked:
 				line_index = card_num #stores the card that was selected in the discard line
 				break
-			else:
-				line_index = None
 
 		return line_clicked,line_index
 
 	def _new_round(self):
 		"""Update round-specific values such as the deck and the player hands."""
+		# Reset the deck
 		self.deck = Deck()
+
+		# Reset the player hands
+		self.player1.hand = []
+		self.player2.hand = []
 		self.deck = self.player1.draw_from_deck(self.deck,10) #player 1 draws 10 cards, the deck is updated
 		self.deck = self.player2.draw_from_deck(self.deck,10) #player 2 draws 10 cards, the deck is updated
+
+		# Reset the player tabletops
+		self.player1.tabletop = []
+		self.player2.tabletop = []
+
+		# Reset the player stages
+		self.player1.stage = []
+		self.player2.stage = []
+
+		# Reset the discard line
+		self.discard_line = []
 		self.discard_line.append(self.deck.draw()) #turn the top card of the deck to start the discard line
+
+		# NOTE: POSSIBLY REMOVE OR RELOCATE THIS VARIABLE RESET
+		self.player_drawn = False
 
 	def _create_text(self,text,text_size,position,box_size,colour=(0,0,0),font="Arial",mode="center"):
 		"""
@@ -253,7 +291,14 @@ class Game:
 				self.window.blit(card_line[card_num].image,(start_x+(card_num*self.LINE_PX_OFFSET),start_y))
 
 	def _mouse_click(self,x,y,width,height):
-		"""Return True if a click is registered in the given region. Otherwise return False"""		
+		"""Return True if a click is registered in the given region. Otherwise return False"""
+		# Prevent clicks from being detected too quickly
+		try:
+			if (time.time() - self.time_of_click) < 0.2:
+				return False
+		except:
+			pass
+
 		# Get the mouse position for button shading effects
 		mouse_position = pygame.mouse.get_pos()
 
@@ -262,6 +307,7 @@ class Game:
 
 		if (x < mouse_position[0] < (x + width)) and (y < mouse_position[1] < (y + height)) and (click[0] == 1):
 			# Click in the designated region
+			self.time_of_click = time.time() #store the time of the last click that was acted upon
 			return True
 
 		else:
@@ -289,6 +335,14 @@ class Game:
 			elif self.state == 2:
 				self.discard_line = self.player2.draw_from_discard_line(self.discard_line,self.discard_line_index)
 				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
+
+	def _player_card_selected(self):
+		"""Move a card from the current player's hand to that player's stage."""
+		if self.state == 1:
+			self.player1.stage_for_discard(self.player_hand_index)
+		elif self.state == 2:
+			self.player2.stage_for_discard(self.player_hand_index)
+		pass
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""
