@@ -60,7 +60,7 @@ class Game:
 		self.hand_size = 10 #number of cards dealt to each player
 		self.discard_line = [] #an empty discard line, populated by the internal _new_round() method
 		self.card_back = pygame.image.load("card_backs/red_back.png") #the back of a card to represent the deck of cards on the screen
-		self.state = 1 #the state of the game (Player 1: 1, Player 2: 2, Pause: 3), defaults to Player 1
+		self.state = 1 #the state of the game (Player 1: 1, Player 2: 2, Pause: 3), starts as Player 1
 
 	def play(self):
 		"""Main function that runs the game."""
@@ -87,8 +87,8 @@ class Game:
 					quit()
 
 
-			# End the round if either player hand is empty or if the deck is empty
-			if (len(self.player1.hand) == 0) or (len(self.player2.hand) == 0) or self.deck.check_if_empty():
+			# End the round if either (player hand and stage is empty) or (the deck is empty)
+			if (len(self.player1.hand) == 0 and len(self.player1.stage) == 0) or (len(self.player2.hand) == 0 and len(self.player2.stage) == 0) or self.deck.check_if_empty():
 				# The round is over
 				print("new round started")
 				# ADD: tally points
@@ -107,6 +107,19 @@ class Game:
 				# Check for click on a specific card in Player 1's hand
 				self.player_hand_click, self.player_hand_index = self._line_click(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
 
+				# Check for click on a specific card in Player 1's stage
+				self.stage_click, self.stage_index = self._line_click(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
+
+				# Check for valid card combinations in Player 1's stage
+				self.triplet = self.player1.check_for_match(3) #check for a triplet, True if a triplet is in the player's stage
+				self.quartet = self.player1.check_for_match(4) #check for a quartet, True if a quartet is in the player's stage
+				self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage (NOT YET IMPLEMENTED)
+
+				# Test code: DELETE *********************
+				if self.triplet:
+					print("triplet")
+					self.triplet = False
+
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
@@ -114,8 +127,11 @@ class Game:
 				# Check for click on a specific discard line card
 				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
 			
-				# Check for click on a specific card in Player 1's hand
+				# Check for click on a specific card in Player 2's hand
 				self.player_hand_click, self.player_hand_index = self._line_click(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
+
+				# Check for click on a specific card in Player 2's stage
+				self.stage_click, self.stage_index = self._line_click(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
 
 			elif self.state == 3: #pause menu
 				pass
@@ -140,11 +156,11 @@ class Game:
 
 		# Display the back of the deck and a count of cards remaining in the deck
 		if self.deck_click:
-			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold",action=self._draw_from_deck()) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold",action=self._draw_from_deck())
 			card_back.exist(self.window)
 			self.deck_click = False #reset deck_click after the click is acted upon
 		else:
-			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold") #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+			card_back = ImageButton(size=self.CARD_SIZE,position=self.DECK_LOC,image=self.card_back,text=str(len(self.deck.contents)),font="Arial Bold")
 			card_back.exist(self.window)
 
 		# Display the discard line
@@ -169,10 +185,19 @@ class Game:
 			self._display_line(self.player2.hand,self.PLAYER_2_X,self.PLAYER_2_Y,button=True)
 
 		# Display player 1's stage
-		self._display_line(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,button=True)
+		if self.stage_click:
+			self._display_line(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,button=True,action=self._unstage_card()) #action: return card to hand
+			self.stage_click = False #reset stage_click after the click is acted upon
+		else:
+			self._display_line(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,button=True)
 
 		# Display player 2's stage
-		self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True)
+		if self.stage_click:
+			self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True,action=self._unstage_card())
+			self.stage_click = False #reset stage_click after the click is acted upon
+		else:
+			self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True)
+
 
 		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
 		if self.state == 1:
@@ -283,7 +308,7 @@ class Game:
 				else:
 					last_card = False
 
-				image = ImageButton(size=self.CARD_SIZE,position=(start_x+(card_num*self.LINE_PX_OFFSET),start_y),image=card_line[card_num].image,action=action,offset=self.LINE_PX_OFFSET,last_element=last_card) #add action: _draw_from_deck --> move card from deck to active player (check player.turn)
+				image = ImageButton(size=self.CARD_SIZE,position=(start_x+(card_num*self.LINE_PX_OFFSET),start_y),image=card_line[card_num].image,action=action,offset=self.LINE_PX_OFFSET,last_element=last_card)
 				image.exist(self.window)
 
 		else: #if the images in the line are simply images, display the images directly to the screen with no added logic
@@ -342,7 +367,13 @@ class Game:
 			self.player1.stage_for_discard(self.player_hand_index)
 		elif self.state == 2:
 			self.player2.stage_for_discard(self.player_hand_index)
-		pass
+
+	def _unstage_card(self):
+		"""Move a card from the current player's stage to that player's hand."""
+		if self.state == 1:
+			self.player1.unstage(self.stage_index)
+		elif self.state == 2:
+			self.player2.unstage(self.stage_index)
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""

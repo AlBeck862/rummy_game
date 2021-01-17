@@ -34,9 +34,30 @@ class Player:
 		"""Move a card from the player's hand to that player's stage."""
 		self.stage.append(self.hand.pop(hand_index))
 
+	def unstage(self,hand_index):
+		"""Move a card from the player's stage to that player's hand."""
+		self.hand.append(self.stage.pop(hand_index))
+
 	def list_hand(self):
 		"""Print the cards in the player's hand to the console."""
 		print(self.hand)
+
+	def check_for_match(self,num_cards):
+		"""Check for a match (3 or 4 cards) in the player's stage."""
+		value = [0] * len(self.stage)
+		for card_num,card in enumerate(self.stage):
+			value[card_num] = card.get_value()
+
+		print(value)
+
+		if (len(value) == num_cards) and (all(x == value[0] for x in value)):
+			return True
+		else:
+			return False
+
+	def check_for_straight(self):
+		"""Check for a straight in the player's stage."""
+		pass
 
 	### UNTESTED METHODS BELOW THIS LINE ###
 
