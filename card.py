@@ -7,12 +7,16 @@ CARD_SIZE = (125,191)
 class Card:
 	# All possible cards. Loaded ace-king, heart-diamond-club-spade. Each card is scaled appropriately.
 	all_cards = [pygame.transform.scale(pygame.image.load("cards/" + str(x) + ".png"),CARD_SIZE) for x in range(52)] #class variable to avoid reloading every image for every new card object
+	possible_values = ["Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"]
+	possible_suits = ["Hearts","Diamonds","Clubs","Spades"]
 
 	def __init__(self,suit,value):
 		"""Every card has a suit and a value."""
 		self.suit=suit #string
 		self.value=value #string
-		self.image=self._assign_image()
+		self.numerical_value=_assign_numerical_value() #int, 1 through 13 representing Ace through King
+		self.points=_assign_points() #int, point value of the card
+		self.image=self._assign_image() #PyGame image
 
 	def __repr__(self):
 		"""What is returned when checking the contents of a card."""
@@ -40,19 +44,31 @@ class Card:
 		"""Returns the card's value."""
 		return self.value.lower()
 
+	def _assign_numerical_value(self):
+		"""Assign the correct numerical value to the card."""
+		for i in range(len(self.possible_values)):
+			if self.possible_values[i] == self.value
+				return i + 1
+
+	def _assign_points(self):
+		"""Assign the correct points value to the card."""
+		if self.value == self.possible_values[0]: #aces are worth 15 points
+			return 15
+		elif self.value in self.possible_values[1:8]: #all numerically valued cards up to nine are worth 5 points
+			return 5
+		else: #tens and face cards are worth 10 points
+			return 10
+
 	def _assign_image(self):
 		"""Assign the correct image to the card."""
-		possible_values = ["Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"]
-		possible_suits = ["Hearts","Diamonds","Clubs","Spades"]
-
 		# Variable to allow breaking out of the outside loop below
 		break_again = False
 		
 		# Determine the correct card image to assign to a particular card object given the card's suit and value
 		card_selection = 0
-		for i in range(len(possible_values)):
-			for j in range(len(possible_suits)):
-				if possible_values[i] == self.value and possible_suits[j] == self.suit:
+		for i in range(len(self.possible_values)):
+			for j in range(len(self.possible_suits)):
+				if self.possible_values[i] == self.value and self.possible_suits[j] == self.suit:
 					break_again = True
 					break
 				card_selection += 1
