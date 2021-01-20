@@ -1,16 +1,18 @@
 import pygame
 
 BLACK = (0,0,0)
+WHITE = (255,255,255)
+GREY = (200,200,200)
 
 class TextButton():
-	def __init__(self,size,position,colour,text="",text_size=14,text_colour=BLACK,font="Arial",action=None):
+	def __init__(self,size,position,colour=WHITE,rollover_colour=GREY,text="",text_size=14,text_colour=BLACK,font="Arial",action=None):
 		"""
 		size: tuple, (width,height)
 		position: tuple, (x,y of the top left corner of the button)
-		colour: tuple, (R,G,B)
+		colour: tuple, (R,G,B), defaults to white
 		text: string, defaults to empty string
 		text_size: int, defaults to 14
-		text_colour: tuple, defaults to black
+		text_colour: tuple, (R,G,B), defaults to black
 		font: string, defaults to Arial
 		action: function, defaults to None (image with roll-over effect)
 		"""
@@ -19,6 +21,7 @@ class TextButton():
 		self.x = position[0]
 		self.y = position[1]
 		self.colour = colour
+		self.rollover_colour = rollover_colour
 		self.text = text #defaults to an empty string
 		self.text_size = text_size
 		self.text_colour = text_colour
@@ -36,14 +39,14 @@ class TextButton():
 		click = pygame.mouse.get_pressed()
 
 		# Set the text to be displayed on the button
-		font = pygame.font.SysFont("Arial",14)
-		text_surface = font.render(self.text, True, (0,0,0))
+		font = pygame.font.SysFont(self.font,self.text_size)
+		text_surface = font.render(self.text, True, self.text_colour)
 		text_rect = text_surface.get_rect()
 		text_rect.center = ((self.x + self.width/2),(self.y + self.height/2))
 
 		if (self.x < mouse_position[0] < (self.x + self.width)) and (self.y < mouse_position[1] < (self.y + self.height)):
 			# Cursor is hovering over the button
-			pygame.draw.rect(screen,(220,220,220),button_location)
+			pygame.draw.rect(screen,self.rollover_colour,button_location,border_radius=(self.height//2))
 			screen.blit(text_surface, text_rect)
 
 			# If the mouse is clicked, execute the function
@@ -52,7 +55,7 @@ class TextButton():
 
 		else:
 			# Cursor is not hovering over the button
-			pygame.draw.rect(screen,self.colour,button_location)
+			pygame.draw.rect(screen,self.colour,button_location,border_radius=(self.height//2))
 			screen.blit(text_surface, text_rect)
 
 class ImageButton():

@@ -8,7 +8,9 @@ class Game:
 	# Colours
 	WHITE = (255,255,255)
 	BLACK = (0,0,0)
-	LIGHT_GREEN = (0,180,0)
+	DARK_GREEN = (0,180,0)
+	GREEN = (0,255,0)
+	LESS_GREEN = (0,230,0)
 	
 	# Misc. variables
 	FPS = 30 #fps at which the game runs
@@ -19,7 +21,7 @@ class Game:
 	# Width and height of the window
 	WIDTH = 1600
 	HEIGHT = 1010
-	
+
 	# Starting coordinates of the discard line
 	DISCARD_X = 200
 	DISCARD_Y = 410
@@ -40,6 +42,12 @@ class Game:
 	PLAYER_2_STAGE_X = 50
 	PLAYER_2_STAGE_Y = 810
 
+	# Width, height, and position of the discard button
+	DISCARD_BUTTON_WIDTH = 250
+	DISCARD_BUTTON_HEIGHT = 50
+	DISCARD_BUTTON_X = 1300
+	DISCARD_BUTTON_Y = DISCARD_Y + (CARD_SIZE[1]/2) - (DISCARD_BUTTON_HEIGHT/2) #align the button with the discard line (and deck)
+
 	def __init__(self,p1="Player 1",p2="Player 2"):
 		"""
 		p1: string, player 1's name, defaults to "Player 1"
@@ -53,7 +61,7 @@ class Game:
 		self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 		pygame.display.set_caption("Rummy 500")
 		
-		self.bg = self.LIGHT_GREEN #the screen's background color
+		self.bg = self.DARK_GREEN #the screen's background color
 		self.player1 = Player(p1) #create Player 1
 		self.player2 = Player(p2) #create Player 2
 		self.deck = None #the deck is initialized via the play() method below
@@ -116,17 +124,17 @@ class Game:
 				self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage.
 
 				# Test code: DELETE **********************************************
-				if self.triplet:
-					print("triplet")
-					self.triplet = False
+				# if self.triplet:
+				# 	print("triplet")
+				# 	self.triplet = False
 
-				if self.quartet:
-					print("quartet")
-					self.quartet = False
+				# if self.quartet:
+				# 	print("quartet")
+				# 	self.quartet = False
 
-				if self.straight:
-					print("straight")
-					self.straight = False
+				# if self.straight:
+				# 	print("straight")
+				# 	self.straight = False
 				# ****************************************************************
 
 			elif self.state == 2: #player 2
@@ -207,6 +215,25 @@ class Game:
 		else:
 			self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True)
 
+		# Set up the appropriate discard button
+		if self.triplet:
+			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD TRIPLET",text_size=18,font="Arial Rounded Bold")
+		elif self.quartet:
+			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD QUARTET",text_size=18,font="Arial Rounded Bold")
+		elif self.straight:
+			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD STRAIGHT",text_size=18,font="Arial Rounded Bold")
+		elif self.state == 1:
+			if len(self.player1.stage) == 1:
+				discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD AND END TURN",text_size=18,font="Arial Rounded Bold")
+		elif self.state == 2:
+			if len(self.player2.stage) == 1:
+				discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD AND END TURN",text_size=18,font="Arial Rounded Bold")
+		
+		# Display the discard button if applicable
+		try:
+			discard_button.exist(self.window)
+		except:
+			pass
 
 		# Display the name of the player whose turn it is currently (or pause if the game state is set to pause)
 		if self.state == 1:
