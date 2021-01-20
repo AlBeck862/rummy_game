@@ -14,8 +14,8 @@ class Card:
 		"""Every card has a suit and a value."""
 		self.suit=suit #string
 		self.value=value #string
-		self.numerical_value=_assign_numerical_value() #int, 1 through 13 representing Ace through King
-		self.points=_assign_points() #int, point value of the card
+		self.numerical_value=self._assign_numerical_value() #int, 1 through 13 representing Ace through King
+		self.points=self._assign_points() #int, point value of the card
 		self.image=self._assign_image() #PyGame image
 
 	def __repr__(self):
@@ -47,7 +47,7 @@ class Card:
 	def _assign_numerical_value(self):
 		"""Assign the correct numerical value to the card."""
 		for i in range(len(self.possible_values)):
-			if self.possible_values[i] == self.value
+			if self.possible_values[i] == self.value:
 				return i + 1
 
 	def _assign_points(self):

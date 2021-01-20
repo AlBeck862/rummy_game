@@ -44,12 +44,10 @@ class Player:
 
 	def check_for_match(self,num_cards):
 		"""Check for a match (3 or 4 cards) in the player's stage."""
-		value = [0] * len(self.stage)
-		for card_num,card in enumerate(self.stage):
-			value[card_num] = card.get_value()
+		# Store staged card values
+		value = [card.get_value() for card in self.stage]
 
-		print(value)
-
+		# Check if all values are identical and if there is the specified number of cards
 		if (len(value) == num_cards) and (all(x == value[0] for x in value)):
 			return True
 		else:
@@ -57,127 +55,31 @@ class Player:
 
 	def check_for_straight(self):
 		"""Check for a straight in the player's stage."""
-		pass
+		# Initialize lists of the stage's cards' numerical values and suits
+		num_value = [card.numerical_value for card in self.stage]
+		suit = [card.get_suit() for card in self.stage]
 
-	### UNTESTED METHODS BELOW THIS LINE ###
+		print(num_value)
+		print(suit)
 
-	def _count_similar_values(self):
-		"""Count the number of cards of each value in a player's hand."""	
-		value_counts = [0,0,0,0,0,0,0,0,0,0,0,0,0] #ace through king
-		possible_values = ["a","2","3","4","5","6","7","8","9","10","j","q","k"]
+		# Check if the numerical values in the stage are sequential and if the all card suits in the stage are identical.
+		# Also check that the stage contains at least three cards.
+		if len(num_value) < 3: #necessary to avoid errors
+			return False
+		elif (sorted(num_value) == list(range(min(num_value),max(num_value)+1))) and all(x == suit[0] for x in suit):
+			return True
+		elif 1 in num_value: #handle ace-high cases
+			num_value.remove(1)
+			num_value.append(14)
+			if (sorted(num_value) == list(range(min(num_value),max(num_value)+1))) and all(x == suit[0] for x in suit):
+				return True
+			else:
+				return False
+		else:
+			return False
 
-		# Count the number of cards of each value in the player's hand.
-		for card in self.hand:
-			for val in range(len(possible_values)):
-				if card.get_value() == possible_values[val]:
-					value_counts[val] += 1
-
-		return zip(possible_values,value_counts)
-
-	def has_triplet(self):
-		"""
-		Check if the player has one or many triplets in their hand.
-		Generates a dictionary stating whether a triplet of each value exists in the hand.
-		"""
-		zipped_count = self._count_similar_values()
-
-		triplets = {key:(True if val==3 else False) for (key,val) in zipped_count}
-
-		return triplets #{card value:True/False given triplet or not}
-
-	def has_quartet(self):
-		"""
-		Check if the player has one or many quartets in their hand.
-		Generates a dictionary stating whether a quartet of each value exists in the hand.
-		"""
-		zipped_count = self._count_similar_values()
-
-		quartets = {key:(True if val==4 else False) for (key,val) in zipped_count}
-
-		return quartets #{card value:True/False given triplet or not}
-
-	def _sort_for_straights(suit_list):
-		"""Sorts a suited list according to card values."""
-		numerical_list = [False] * 14 #list of 14 None-type spaces, ace-low through ace-high
-		
-		# Establish the order of the cards
-		for card in suit_list:
-			try:
-				num_value = int(card.get_value())
-			except:
-				if card.get_value() == "jack":
-					num_value = 11
-				elif card.get_value() == "queen":
-					num_value = 12
-				elif card.get_value() == "king":
-					num_value = 13
-				elif card.get_value() == "ace":
-					num_value = 14
-				else:
-					print("Error: straight sorting failed.")
-
-			numerical_list[num_value-1] = True
-			numerical_list[0] = numerical_list[13] #force the ace count to be the same in both ace locations
-
-		# Return a boolean list representing card presence in the given suit, ordered from ace-low to ace-high
-		return numerical_list
-
-	def has_straight(self):
-		"""Check if the player has one or many straights in their hand."""
-		
-		# Create one list for each suit in the player's hand
-		all_hearts = []
-		all_diamonds = []
-		all_clubs = []
-		all_spades = []
-		for card in self.hand:
-			if card.is_suit("hearts"):
-				all_hearts.append(card)
-			if card.is_suit("diamonds"):
-				all_diamonds.append(card)
-			if card.is_suit("clubs"):
-				all_clubs.append(card)
-			if card.is_suit("spades"):
-				all_spades.append(card)
-
-		# Get the order of cards for each suit
-		hearts = self._sort_for_straights(all_hearts)
-		hearts.append(False) #append False to prevent a list-index error below
-
-		diamonds = self._sort_for_straights(all_diamonds)
-		diamonds.append(False) #append False to prevent a list-index error below
-
-		clubs = self._sort_for_straights(all_clubs)
-		clubs.append(False) #append False to prevent a list-index error below
-
-		spades = self._sort_for_straights(all_spades)
-		spades.append(False) #append False to prevent a list-index error below
-
-		# Place all suit lists into a single multi-dimensional list
-		all_suits = [hearts,diamonds,clubs,spades]
-
-		# Package straight cards and lengths together
-		straights = [False] * 20 #this is more than enough slots to cover for the number of possible straights in a hand
-		straight_num = 0
-		suit_count = 0
-		for suit in all_suits:
-			suit_count += 1
-			for i in range(len(suit)):
-				# Edge case for the first index (cannot check the previous index)
-				if i == 0:
-					if suit[0]:
-						start_index = 0
-				# Detect the start of a potential straight
-				elif suit[i] and not suit[i-1]:
-					start_index = i
-				# Detect the end of a potential straight
-				elif suit[i] and not suit[i+1]:
-					end_index = i
-					if (end_index - start_index) >= 2:
-						straights[straight_num] = (suit_count,start_index,end_index)
-						straight_num += 1
-				else:
-					pass
-
-		# Return the suit and the indeces of the cards bounding each straight
-		return straights
+	# CURRENTLY UNUSED. COULD BE USED FOR .sort() LIST METHOD OR FOR sorted() LIST FUNCTION.
+	# Idea: use to sort straights to be discarded to the tabletop
+	def _sort_by_num_value(self,card):
+		"""Return the numerical value of the given card for straight sorting."""
+		return card.numerical_value

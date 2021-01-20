@@ -113,12 +113,21 @@ class Game:
 				# Check for valid card combinations in Player 1's stage
 				self.triplet = self.player1.check_for_match(3) #check for a triplet, True if a triplet is in the player's stage
 				self.quartet = self.player1.check_for_match(4) #check for a quartet, True if a quartet is in the player's stage
-				self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage (NOT YET IMPLEMENTED)
+				self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage.
 
-				# Test code: DELETE *********************
+				# Test code: DELETE **********************************************
 				if self.triplet:
 					print("triplet")
 					self.triplet = False
+
+				if self.quartet:
+					print("quartet")
+					self.quartet = False
+
+				if self.straight:
+					print("straight")
+					self.straight = False
+				# ****************************************************************
 
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
