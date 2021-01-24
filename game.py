@@ -10,7 +10,7 @@ class Game:
 	BLACK = (0,0,0)
 	DARK_GREEN = (0,180,0)
 	GREEN = (0,255,0)
-	LESS_GREEN = (0,230,0)
+	LESS_GREEN = (0,200,0)
 	
 	# Misc. variables
 	FPS = 30 #fps at which the game runs
@@ -141,6 +141,10 @@ class Game:
 					self.quartet = self.player1.check_for_match(4) #check for a quartet, True if a quartet is in the player's stage
 					self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage
 
+				# Check for click on the undo button if applicable
+				if self.show_undo_button:
+					self.undo_button_clicked = self._mouse_click(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y,self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT)
+
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
 				self.deck_click = self._mouse_click(self.DECK_LOC[0], self.DECK_LOC[1], self.CARD_SIZE[0], self.CARD_SIZE[1])
@@ -157,9 +161,12 @@ class Game:
 			elif self.state == 3: #pause menu
 				pass
 
-
 			# Refresh what is displayed on-screen
 			self._draw_window()
+
+############### CURRENT BUGS ###############
+# Undo button: clicking "undo" while any of the cards drawn from the discard line are in the stage (and not in hand) crashes the game because .remove() is called in player.undo_discard() on a list (player hand) that does not contain the card.
+############### CURRENT BUGS ###############
 
 	def _draw_window(self):
 		"""Update what is shown on-screen."""
@@ -182,11 +189,13 @@ class Game:
 			self._display_line(self.discard_line,self.DISCARD_X,self.DISCARD_Y,button=True)
 
 		# Display the undo button if applicable (if a card was drawn from the discard line, the player must play that card which may not be possible)
+		# The undo button returns the cards drawn from the discard line to the discard line
 		if self.show_undo_button:
 			if self.undo_button_clicked:
-				undo_button = TextButton((self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT),(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="UNDO DRAW",text_size=18,font="Arial Rounded Bold",action=None) #action: return cards to discard line
+				undo_button = TextButton((self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT),(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="UNDO DRAW",text_size=18,font="Arial Rounded Bold",action=self._undo_discard_draw())
 				undo_button.exist(self.window)
 				self.undo_button_clicked = False #reset undo_button_clicked after the click is acted upon
+				self.player_drawn = False #allow the player to draw again to correct their mistake (i.e., allow them to draw from the deck instead)
 			else:
 				undo_button = TextButton((self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT),(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="UNDO DRAW",text_size=18,font="Arial Rounded Bold")
 				undo_button.exist(self.window)
@@ -303,7 +312,9 @@ class Game:
 
 		# Reset the discard line
 		self.discard_line = []
-		self.discard_line.append(self.deck.draw()) #turn the top card of the deck to start the discard line
+		
+		for i in range(5):
+			self.discard_line.append(self.deck.draw()) #turn the top card of the deck to start the discard line
 
 		# NOTE: POSSIBLY REMOVE OR RELOCATE THIS VARIABLE RESET
 		self.player_drawn = False
@@ -398,10 +409,10 @@ class Game:
 		# If the player has not drawn yet, allow the player to draw
 		if not self.player_drawn:
 			if self.state == 1:
-				self.discard_line = self.player1.draw_from_discard_line(self.discard_line,self.discard_line_index)
+				self.discard_line,self.drawn_discard_cards = self.player1.draw_from_discard_line(self.discard_line,self.discard_line_index)
 				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
 			elif self.state == 2:
-				self.discard_line = self.player2.draw_from_discard_line(self.discard_line,self.discard_line_index)
+				self.discard_line,self.drawn_discard_cards = self.player2.draw_from_discard_line(self.discard_line,self.discard_line_index)
 				self.player_drawn = True #prevents drawing multiple times per turn, must be reset after each turn
 
 	def _player_card_selected(self):
@@ -417,6 +428,13 @@ class Game:
 			self.player1.unstage(self.stage_index)
 		elif self.state == 2:
 			self.player2.unstage(self.stage_index)
+
+	def _undo_discard_draw(self):
+		"""Return all cards drawn from the discard line to the discard line."""
+		if self.state == 1:
+			self.discard_line = self.player1.undo_discard(self.discard_line,self.drawn_discard_cards)
+		elif self.state == 2:
+			self.discard_line = self.player2.undo_discard(self.discard_line,self.drawn_discard_cards)
 
 	def _update_score(self):
 		"""Update player scores after a round is completed."""

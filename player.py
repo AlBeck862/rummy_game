@@ -24,11 +24,13 @@ class Player:
 		Returns an updated discard line.
 		"""
 		num_cards = len(discard_line) - discard_line_index #calculate the number of cards to draw from the end of the discard line
+		moved_cards = [] #store the cards that were moved to enable the use of the undo button if necessary
 
 		for i in range(num_cards):
-			self.hand.append(discard_line.pop())
+			moved_cards.append(discard_line.pop())
+			self.hand.append(moved_cards[i])
 
-		return discard_line
+		return discard_line,moved_cards
 
 	def stage_for_discard(self,hand_index):
 		"""Move a card from the player's hand to that player's stage."""
@@ -37,6 +39,14 @@ class Player:
 	def unstage(self,hand_index):
 		"""Move a card from the player's stage to that player's hand."""
 		self.hand.append(self.stage.pop(hand_index))
+
+	def undo_discard(self,discard_line,moved_cards):
+		"""Return all cards drawn from the discard line to the discard line."""
+		for card in moved_cards:
+			discard_line.append(card)
+			self.hand.remove(card)
+
+		return discard_line
 
 	def list_hand(self):
 		"""Print the cards in the player's hand to the console."""
