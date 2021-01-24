@@ -48,6 +48,12 @@ class Game:
 	DISCARD_BUTTON_X = 1300
 	DISCARD_BUTTON_Y = DISCARD_Y + (CARD_SIZE[1]/2) - (DISCARD_BUTTON_HEIGHT/2) #align the button with the discard line (and deck)
 
+	# Width, height, and position of the undo button (when drawing from the discard line)
+	UNDO_BUTTON_WIDTH = 130
+	UNDO_BUTTON_HEIGHT = 50
+	UNDO_BUTTON_X = 1200
+	UNDO_BUTTON_Y = 950
+
 	def __init__(self,p1="Player 1",p2="Player 2"):
 		"""
 		p1: string, player 1's name, defaults to "Player 1"
@@ -79,6 +85,9 @@ class Game:
 		# Start the first round of the game
 		self._new_round()
 
+		self.show_undo_button = False
+		self.undo_button_clicked = False
+
 		# TEST CODE, REMOVE ASAP *********************************
 		self.player_drawn = False
 
@@ -104,6 +113,7 @@ class Game:
 
 			# INSERT PLAYER-STATE CHANGE LOGIC HERE (must be before player-specific logic)
 			# INCLUDE: reset of "self.player_drawn" variable to False
+			# INCLUDE: reset of "self.show_undo_button" variable to False (if it is never clicked, it will stay until the end of the turn)
 
 			if self.state == 1: #player 1
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
@@ -111,6 +121,9 @@ class Game:
 
 				# Check for click on a specific discard line card
 				self.discard_line_click, self.discard_line_index = self._line_click(self.discard_line,self.DISCARD_X,self.DISCARD_Y,self.CARD_SIZE[0],self.CARD_SIZE[1])
+				if self.discard_line_click and not self.player_drawn:
+					self.discard_line_click_card = self.discard_line[self.discard_line_index] #the card clicked in the discard line is remembered: it must be discarded to the tabletop
+					self.show_undo_button = True
 
 				# Check for click on a specific card in Player 1's hand
 				self.player_hand_click, self.player_hand_index = self._line_click(self.player1.hand,self.PLAYER_1_X,self.PLAYER_1_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
@@ -119,23 +132,14 @@ class Game:
 				self.stage_click, self.stage_index = self._line_click(self.player1.stage,self.PLAYER_1_STAGE_X,self.PLAYER_1_STAGE_Y,self.CARD_SIZE[0], self.CARD_SIZE[1])
 
 				# Check for valid card combinations in Player 1's stage
-				self.triplet = self.player1.check_for_match(3) #check for a triplet, True if a triplet is in the player's stage
-				self.quartet = self.player1.check_for_match(4) #check for a quartet, True if a quartet is in the player's stage
-				self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage.
-
-				# Test code: DELETE **********************************************
-				# if self.triplet:
-				# 	print("triplet")
-				# 	self.triplet = False
-
-				# if self.quartet:
-				# 	print("quartet")
-				# 	self.quartet = False
-
-				# if self.straight:
-				# 	print("straight")
-				# 	self.straight = False
-				# ****************************************************************
+				if self.show_undo_button:
+					self.triplet = self.player1.check_for_match(3,self.discard_line_click_card) #check for a triplet, True if a triplet is in the player's stage AND the card clicked in the discard line is used
+					self.quartet = self.player1.check_for_match(4,self.discard_line_click_card) #check for a quartet, True if a quartet is in the player's stage AND the card clicked in the discard line is used
+					self.straight = self.player1.check_for_straight(self.discard_line_click_card) #check for a straight, True if a straight is in the player's stage AND the card clicked in the discard line is used
+				else:
+					self.triplet = self.player1.check_for_match(3) #check for a triplet, True if a triplet is in the player's stage
+					self.quartet = self.player1.check_for_match(4) #check for a quartet, True if a quartet is in the player's stage
+					self.straight = self.player1.check_for_straight() #check for a straight, True if a straight is in the player's stage
 
 			elif self.state == 2: #player 2
 				# Check whether the deck has been clicked (True: clicked, False: not clicked)
@@ -157,16 +161,6 @@ class Game:
 			# Refresh what is displayed on-screen
 			self._draw_window()
 
-		# ***************************
-		# IDEA: if the player clicks a card, it goes to a "selected card area". The program can then continually
-		# check to see if the cards in that area form a triplet/quartet/straight, and, if so, that combo of cards
-		# can be discarded to the tabletop for the current player. In case of errors, clicking a card in the
-		# "selected card area" would return the card to the hand. If only one card is "staged" in that area, a button could
-		# appear to allow the player to discard to the discard line and end their turn (+ another button to discard onto a
-		# previously discarded triple/quartet/straight, if applicable). If more than one card is "staged" in that area,
-		# another button could appear to allow the player to discard to the tabletop.
-		# ***************************
-
 	def _draw_window(self):
 		"""Update what is shown on-screen."""
 		self.window.fill(self.bg)
@@ -186,6 +180,16 @@ class Game:
 			self.discard_line_click = False #reset discard_line_click after the click is acted upon
 		else:
 			self._display_line(self.discard_line,self.DISCARD_X,self.DISCARD_Y,button=True)
+
+		# Display the undo button if applicable (if a card was drawn from the discard line, the player must play that card which may not be possible)
+		if self.show_undo_button:
+			if self.undo_button_clicked:
+				undo_button = TextButton((self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT),(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="UNDO DRAW",text_size=18,font="Arial Rounded Bold",action=None) #action: return cards to discard line
+				undo_button.exist(self.window)
+				self.undo_button_clicked = False #reset undo_button_clicked after the click is acted upon
+			else:
+				undo_button = TextButton((self.UNDO_BUTTON_WIDTH,self.UNDO_BUTTON_HEIGHT),(self.UNDO_BUTTON_X,self.UNDO_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="UNDO DRAW",text_size=18,font="Arial Rounded Bold")
+				undo_button.exist(self.window)
 
 		# Display player 1's hand
 		if self.player_hand_click:
@@ -215,18 +219,21 @@ class Game:
 		else:
 			self._display_line(self.player2.stage,self.PLAYER_2_STAGE_X,self.PLAYER_2_STAGE_Y,button=True)
 
-		# Set up the appropriate discard button
+		# Set up the appropriate discard button ***********IMPORTANT: self.show_undo_button should ONLY be reset to False if the button is CLICKED
 		if self.triplet:
 			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD TRIPLET",text_size=18,font="Arial Rounded Bold")
+			self.show_undo_button = False #remove the undo button once the card is discarded to the tabletop
 		elif self.quartet:
 			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD QUARTET",text_size=18,font="Arial Rounded Bold")
+			self.show_undo_button = False #remove the undo button once the card is discarded to the tabletop
 		elif self.straight:
 			discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD STRAIGHT",text_size=18,font="Arial Rounded Bold")
+			self.show_undo_button = False #remove the undo button once the card is discarded to the tabletop
 		elif self.state == 1:
-			if len(self.player1.stage) == 1:
+			if len(self.player1.stage) == 1 and not self.show_undo_button:
 				discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD AND END TURN",text_size=18,font="Arial Rounded Bold")
 		elif self.state == 2:
-			if len(self.player2.stage) == 1:
+			if len(self.player2.stage) == 1 and not self.show_undo_button:
 				discard_button = TextButton((self.DISCARD_BUTTON_WIDTH,self.DISCARD_BUTTON_HEIGHT),(self.DISCARD_BUTTON_X,self.DISCARD_BUTTON_Y),colour=self.GREEN,rollover_colour=self.LESS_GREEN,text="DISCARD AND END TURN",text_size=18,font="Arial Rounded Bold")
 		
 		# Display the discard button if applicable

@@ -42,8 +42,13 @@ class Player:
 		"""Print the cards in the player's hand to the console."""
 		print(self.hand)
 
-	def check_for_match(self,num_cards):
+	def check_for_match(self,num_cards,needed_card=None):
 		"""Check for a match (3 or 4 cards) in the player's stage."""
+		# If the card clicked in the discard line is not staged, automatically return false
+		if needed_card is not None:
+			if needed_card not in self.stage:
+				return False
+
 		# Store staged card values
 		value = [card.get_value() for card in self.stage]
 
@@ -53,14 +58,16 @@ class Player:
 		else:
 			return False
 
-	def check_for_straight(self):
+	def check_for_straight(self,needed_card=None):
 		"""Check for a straight in the player's stage."""
+		# If the card clicked in the discard line is not staged, automatically return false
+		if needed_card is not None:
+			if needed_card not in self.stage:
+				return False
+
 		# Initialize lists of the stage's cards' numerical values and suits
 		num_value = [card.numerical_value for card in self.stage]
 		suit = [card.get_suit() for card in self.stage]
-
-		print(num_value)
-		print(suit)
 
 		# Check if the numerical values in the stage are sequential and if the all card suits in the stage are identical.
 		# Also check that the stage contains at least three cards.
